@@ -1,0 +1,108 @@
+{% extends 'app_web_n/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+    <!-- header -->
+    <div class="header">
+{#        <div style="height: 23px;"></div>#}
+        <div class="row no-gutters">
+            <div class="col-auto">
+                <a href="{% url 'app_login' %}" class="btn  btn-link text-dark"><i class="material-icons">chevron_left</i></a>
+            </div>
+            <div class="col text-center"></div>
+            <div class="col-auto"></div>
+        </div>
+    </div>
+    <!-- header ends -->
+    <div class="row no-gutters login-row">
+        <div class="col align-self-center px-3 text-center">
+            <br>
+            {% if request.session.iii_login %}
+                <img src="{% static 'app_web/img/main_logo.png' %}" alt="logo" class="logo-small">
+            {% else %}
+                <img src="{% static 'app_web/img/logo-04b.png' %}" alt="logo" class="logo-small">
+            {% endif %}
+            <form class="form-signin mt-3 " action="{% url 'app_sign_up' %}" method="post" id="frm">
+                {% csrf_token %}
+{#                <div class="form-group">#}
+{#                    <input type="text" id="account" name="account" class="form-control form-control-lg text-center" placeholder="{% trans 'User Account (Case sensitive)' %}" required autofocus onkeyup='value=value.replace(/[\W]/g, "")'>#}
+{#                </div>#}
+                <div class="form-group">
+                    <input type="number" id="phone" onkeyup="replace_amount(this)" maxlength="10" name="phone" class="form-control form-control-lg text-center" placeholder="{% trans 'Phone Number, ex: 0912345678' %}" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="username" name="user_real_name" class="form-control form-control-lg text-center" placeholder="{% trans 'User Name' %}" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="user_pwd" minlength="8" name="user_pwd" class="form-control form-control-lg text-center" autocomplete="off" placeholder="{% trans 'Password (Case sensitive)' %}" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="chk_user_pwd" minlength="8" name="chk_user_pwd" class="form-control form-control-lg text-center" autocomplete="off" placeholder="{% trans 'Please enter password again' %}" required>
+                </div>
+
+                <p class="mt-4 d-block text-secondary" >
+                    <label id="privacy_text">{% trans 'Click Next to indicate that you agree to the personal privacy agreement' %}</label>
+                    <br>
+                    <a href="{% url 'privacy_file'  %}" id="privacy_url">{% trans 'Personal privacy agreement' %}</a>
+                </p>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- login buttons -->
+    <div class="row mx-0 bottom-button-container">
+        <div class="col">
+            <a onclick="frm_submit()" class="btn btn-default btn-lg btn-rounded shadow btn-block" id="btn_next">{% trans 'Next, verification' %}</a>
+        </div>
+    </div>
+    <!-- login buttons -->
+{% endblock %}
+{% block js %}
+<script>
+    $(document).ready(function() {
+        document.getElementById('header_tab').style.display = "none";
+        document.getElementById('header_bar').style.display = "none";
+        document.getElementById('sidebar').style.display = "none";
+        document.getElementsByTagName("title")[0].innerText = '{% trans "Sign Up" %}' + ' · ' + '{% trans "My PassCode" %}';
+        {#document.getElementById('back_login_a').style.display = "";#}
+        {#document.getElementById('back_history_a').style.display = "none";#}
+
+
+        var theme_color_layout = $.cookie("theme-color-layout");
+        var theme_color = $.cookie("theme-color");
+        if (theme_color == 'black-theme' && theme_color_layout == 'theme-dark'){
+            {#document.getElementById('account').style.color = 'white';#}
+            document.getElementById('phone').style.color = 'white';
+            document.getElementById('username').style.color = 'white';
+            document.getElementById('password').style.color = 'white';
+            document.getElementById('chkpassword').style.color = 'white';
+            document.getElementById('privacy_url').style.color = 'white';
+            document.getElementById('privacy_text').style.color = '#454545';
+            document.getElementById('btn_next').style.backgroundColor = '#2c2c2c';
+        }
+    });
+    function frm_submit() {
+        var frm = $('#frm');
+        if (frm[0].checkValidity()) {
+            {#var account_check = $('#account').val();#}
+            {#if(account_check.indexOf(" ") != -1){#}
+            {#    $("#msg").text('{% trans "There can be no blanks in the account" %}');#}
+            {#    $("#message_modal").modal();#}
+            {# }else{#}
+            {#    frm.submit();#}
+            {# }#}
+            frm.submit();
+        }else{
+
+            frm[0].reportValidity();
+        }
+    }
+    function replace_amount(obj) {
+        obj.value = obj.value.replace(/[^\d]/g,'');
+    }
+</script>
+
+{% endblock %}
+
+

@@ -1,0 +1,116 @@
+{% extends 'line_liff/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block stylesheet %}
+    <style>
+        #scan_file_div {
+            position: relative;
+        }
+        #scan_file {
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 40px;
+            {#width: 88px;#}
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div style="height: 100px;"></div>
+        <form method="post" action="{% url 'liff_scan' %}" enctype="multipart/form-data" id="scan_frm">
+            {% csrf_token %}
+
+            <div class="row bottom40" id="line_scan_div" >
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-control">
+                        <input type="hidden" class="form-control text-template" id="scan_value" >
+                        <button onclick="scanQR_btn();" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #cd651a">掃描</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row bottom40" id="upload_scan_div">
+                <div class="col-md-12 col-sm-12 col-xs-12" id="scan_file_div">
+                    <label class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #cd651a">
+                        {% trans 'Scan' %}
+                        <input capture="camera" type="file" accept="image/*" name="scan_file" id="scan_file" style="display: none;" onchange="document.getElementById('loader_page').style.display = '';$('#scan_frm').submit();">
+                    </label>
+                </div>
+
+{#                <div class="col-md-12 col-sm-12 col-xs-12" id="scan_file_div">#}
+{#                    <button onclick="$('#scan_file').click()" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #cd651a">{% trans 'Scan' %}</button>#}
+{#                    <input type="file" accept="image/*" name="scan_file" id="scan_file" style="display: none;" onchange="document.getElementById('loader_page').style.display = '';$('#scan_frm').submit();">#}
+{#                </div>#}
+            </div>
+            <div style="height: 30px;"></div>
+            <div class="text-center">or</div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="user_name" style="font-size: 18px;" name="user_name">
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'User Account' %} / {% trans 'Place Serial Number' %}</label>
+                    </div>
+                </div>
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <button type="submit" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" id="btn_send" ><span>{% trans 'Submit' %}</span></button>
+                </div>
+            </div>
+            <div style="height: 30px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    {#                <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="border-radius:11px; height:60px; background-color: #848181;color: white; font-size: 20px;"><span>返回首頁</span></a>#}
+                    <a onclick="liff.closeWindow();"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>{% trans 'Back' %}</span></a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        function scanQR_btn() {
+            alert('start');
+            if (liff.scanCode){
+                alert(liff.scanCode);
+                liff.scanCode().then(result => {
+                    alert(result);
+                    alert(result['value']);
+                    alert(1);
+                    if (result['value'] != ''){
+                        alert(result['value']);
+                        $('#scan_value').val(result['value']);
+                        $('#scan_frm').submit();
+                    }
+                    else{
+                        alert('{% trans "Scan Fail, Please rescan QR Code" %}');
+                    }
+                }).catch(err => {
+                    alert('{% trans "Scan Fail, Please rescan QR Code" %}');
+                });
+            }else{
+                alert('{% trans "Scan Fail, Failed to open the scan function, please upload with a photo instead" %}');
+                document.getElementById('line_scan_div').style.display = "none";
+                document.getElementById('upload_scan_div').style.display = "";
+            }
+        }
+        $(document).ready(function() {
+
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Scan" %}' + ' · ' + '{% trans "My PassCode" %}';
+            {#document.getElementById('header_bar').style.display = "none";#}
+            var request_device = '{{ request.session.DEVICE}}';
+            if (request_device == 'android'){
+                document.getElementById('line_scan_div').style.display = "";
+                document.getElementById('upload_scan_div').style.display = "none";
+            }else{
+                document.getElementById('line_scan_div').style.display = "none";
+                document.getElementById('upload_scan_div').style.display = "";
+            }
+            document.getElementById('line_scan_div').style.display = "none";
+            document.getElementById('upload_scan_div').style.display = "";
+
+        });
+    </script>
+{% endblock %}

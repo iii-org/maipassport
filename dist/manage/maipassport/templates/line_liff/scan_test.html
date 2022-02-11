@@ -1,0 +1,96 @@
+{% extends 'line_liff/base.html' %}
+{% load static %}
+{% block content %}
+<form action="{% url 'liff_scan_test' %}" method="post">
+{% csrf_token %}
+{#<form>#}
+{#    {% csrf_token %}#}
+    <div>
+        <label>QR Code 類型: USER</label>
+        <input type="hidden" name="qr_type" value="USER">
+{#        <select name="qr_type">#}
+{#            <option value="USER">USER</option>#}
+{#            <option value="PLACE">PLACE</option>#}
+{#        </select>#}
+    </div>
+    <div>
+        <label>QR Code ID</label>
+{#        <input type="text" name="qr_content">#}
+        <select name="qr_content">
+            {% for user in user_list %}
+                <option value="{{ user.pub_id }}">{{ user.auth_user.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><button type="submit">送出</button> </div>
+</form>
+<div style="height: 60px;"></div>
+<form action="{% url 'liff_scan_test' %}" method="post">
+{% csrf_token %}
+{#<form>#}
+{#    {% csrf_token %}#}
+    <div>
+        <label>QR Code 類型: PLACE</label>
+        <input type="hidden" name="qr_type" value="PLACE">
+    </div>
+    <div>
+        <label>QR Code ID</label>
+{#        <input type="text" name="qr_content">#}
+        <select name="qr_content">
+            {% for place in place_list %}
+                <option value="{{ place.pub_id }}">{{ place.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <input type="text" name="latlon_longitude">
+        <input type="text" name="latlon_latitude">
+    </div>
+    <div><button type="submit">送出</button> </div>
+</form>
+<div style="height: 60px;"></div>
+<form action="{% url 'liff_scan_test' %}" method="post">
+{% csrf_token %}
+{#<form>#}
+{#    {% csrf_token %}#}
+    <div>
+        <label>QR Code 類型: ADDORG</label>
+        <input type="hidden" name="qr_type" value="ADDORG">
+    </div>
+    <div>
+        <label>QR Code ID</label>
+        <select name="qr_content">
+            {% for company in company_list %}
+                <option value="{{ company.1 }}">{{ company.0 }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div><button type="submit">送出</button> </div>
+</form>
+{% endblock %}
+{% block js %}
+<script type="text/javascript" src="{% static 'app_web/js/CryptoJSv3/rollups/aes.js' %}"></script>
+    <script type="text/javascript" src="{% static 'app_web/js/CryptoJSv3/components/pad-zeropadding.js' %}"></script>
+    <script type="text/javascript">
+        {#var encrypted =  decodeURIComponent("5P%2F6Rae8NgkiTRtXuthz3gAJLjaG9Ay56XueE0GuwTk%3D");#}
+        {#var content = CryptoJS.enc.Utf8.parse('170910\t20200428202900');#}
+        {#var iv_source = CryptoJS.enc.Utf8.parse("RkqtoDYkOi2NS&xK");#}
+        {##}
+        {#var key = CryptoJS.enc.Utf8.parse("<`m<*@|]L8ZUG4kxV(%&9S2WQ}_KPMs9");#}
+
+        {#alert('iv='+iv_source+', key='+key+',encrypted='+ encrypted);#}
+
+        {#var decrypted = CryptoJS.AES.decrypt(encrypted, key, {#}
+        {#     iv: iv_source,#}
+        {#          mode: CryptoJS.mode.CBC,#}
+        {#        padding: CryptoJS.pad.ZeroPadding});#}
+        {#    alert('d='+decrypted);#}
+        {#    decrypted = CryptoJS.enc.Utf8.stringify(decrypted);//轉為UTF8字串#}
+        {#    alert('d='+decrypted);#}
+        {#var encrypted = CryptoJS.AES.encrypt(content, key, {#}
+        {#    iv: iv_source,#}
+        {#    mode: CryptoJS.mode.CBC,#}
+        {#    padding: CryptoJS.pad.ZeroPadding});#}
+        {#alert(encodeURIComponent(encrypted.toString()));#}
+    </script>
+{% endblock %}

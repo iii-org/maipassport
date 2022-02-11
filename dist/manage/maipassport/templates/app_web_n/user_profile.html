@@ -1,0 +1,129 @@
+{% extends 'app_web_n/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block stylesheet %}
+    <style>
+        {#.crop2 img {#}
+        {#    margin: -50% 0 0 0;#}
+        {# }#}
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <form method="post" action="{% url 'upload_user_img' request.app_user.pub_id request.app_user.api_token %}" id="upload_frm" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="text-center">
+                <div class="figure-profile shadow my-4" id="profile_user_img_div">
+                    <figure class="avatar avatar-60 border-0" id="profile_figure">
+                        <img src="{% static 'app_web/img/avatar_def.png' %}" height="auto" width="auto" id="profile_user_img">
+                    </figure>
+                    {% if not request.session.iii_login %}
+                    <div class="btn btn-dark text-white floating-btn">
+                        <i class="material-icons">camera_alt</i>
+{#                        <input type="file" class="float-file">#}
+                        <input type="file" accept="image/*" class="float-file" name="upload_img" id="upload_img" onchange="document.getElementById('loader_page').style.display = '';$('#upload_frm').submit();">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+        <form method="post" action="{% url 'user_profile' request.app_user.pub_id request.app_user.api_token %}">
+        {% csrf_token %}
+            <h6 class="subtitle">{% trans 'Personal Information' %}</h6>
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="form-group float-label active mb-0">
+                        <input type="tel" class="form-control" id="username" value="{{ request.app_user.auth_user.username }}" readonly>
+                        <label class="form-control-label">{% trans 'User Account' %}</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="form-group float-label active">
+                        <input type="text" class="form-control" id="user_first_name" value="{{ request.user.first_name }}" {% if request.session.iii_login %}readonly{% else %}name="user_first_name"{% endif %}>
+                        <label class="form-control-label" id="aaa">{% trans 'User Name' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div class="row">#}
+{#                <div class="col-12 col-md-6">#}
+{#                    <div class="form-group float-label active mb-0">#}
+{#                        <input type="tel" class="form-control" id="phone" {% if request.app_user.phone != none %}value="{{ request.app_user.phone }}"{% else %}{% endif %} readonly>#}
+{#                        <label class="form-control-label">{% trans 'Phone Number' %}</label>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-12 col-md-6">#}
+{#                    <div class="form-group float-label active">#}
+{#                        <input type="email" class="form-control" id="email" name="email" {% if request.app_user.email != none %}value="{{ request.app_user.email }}"{% else %}{% endif %} >#}
+{#                        <label class="form-control-label">電子郵件</label>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+
+            <h6 class="subtitle">{% trans 'Relevant Information' %}</h6>
+
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="form-group float-label active">
+{#                        <input type="text" class="form-control" required="" value="58, Lajpat Nagar">#}
+                        <select class="form-control" style="border-radius: 40px;" id="company_sel"  name="company_id">
+                            {% if user_company_list %}
+                                {% for user_company in user_company_list %}
+                                    <option value="{{ user_company.pub_id }}" {% if user_company.default_show %}selected{% endif %}>{{ user_company.company.name }} / {{ user_company.department.name }} {% if user_company.default_show %}({% trans 'Default' %}){% endif %}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option>{% trans 'No Company / School' %}</option>
+                            {% endif %}
+                        </select>
+                        <label class="form-control-label">{% trans 'Company / School' %}</label>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="form-group float-label active">
+                        <input type="text" class="form-control" {% if request.app_user.note != none %}value="{{ request.app_user.note }}"{% else %}{% endif %} id="note" name="note">
+                        <label class="form-control-label">{% trans 'Remarks' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+
+            {% if not request.session.iii_login %}
+                <button type="submit" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" id="btn_next"><span>{% trans 'Update' %}</span></button>
+                {% if request.app_user.phone %}
+                    <button type="button" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #767774;" onclick="location.href='{% url 'edit_password_otp' request.app_user.pub_id request.app_user.api_token %}'"><span>{% trans 'Reset Password' %}</span></button>
+                {% endif %}
+            {% endif %}
+            <br>
+        </form>
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Personal Information" %}' + ' · ' + '{% trans "My PassCode" %}';
+            document.getElementById('sidebar').style.display = "none";
+            document.getElementById('hamburger').style.display = "none";
+            document.getElementById('backpage').style.display = "";
+
+
+            var theme_color_layout = $.cookie("theme-color-layout");
+            var theme_color = $.cookie("theme-color");
+            if (theme_color == 'black-theme' && theme_color_layout == 'theme-dark'){
+
+                document.getElementById('btn_next').style.backgroundColor = '#2c2c2c';
+
+                $('.form-control-label').css('color', 'white');
+                $('.black-theme .figure-profile').css('border-color', '#FFFFFF');
+
+
+            }
+            if (theme_color_layout == 'theme-dark'){
+                document.getElementById('user_first_name').style.color = 'white';
+                {#document.getElementById('email').style.color = 'white';#}
+                {#document.getElementById('phone').style.color = 'white';#}
+                document.getElementById('note').style.color = 'white';
+                document.getElementById('company_sel').style.color = 'white';
+            }
+        });
+    </script>
+{% endblock %}

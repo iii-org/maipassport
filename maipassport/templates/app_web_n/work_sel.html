@@ -1,0 +1,94 @@
+{% extends 'app_web_n/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+    <div class="container">
+        <div style="height: 100px;"></div>
+        <form method="post" action="{% url 'user_work_status' request.app_user.pub_id request.app_user.api_token %}">
+            {% csrf_token %}
+            <input type="hidden" value="{{ location }}" name="location">
+            <input type="hidden" name="company_id" value="{{ company.pub_id }}">
+            <input type="hidden" name="place_id" value="{{ place.pub_id }}">
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="id_company" style="font-size: 18px;" value="{{ company.name  }}" readonly>
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Company / School' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="id_place" style="font-size: 18px;" value="{{ place.name  }}" readonly>
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Sign In / Out Place' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="id_status" style="font-size: 18px;" value="{{ user_status }}" readonly>
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Currency Status' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <select class="form-control selectpicker text-template" name="status" id="id_select">
+                            {% for status in status_list %}
+                                <option value="{{ status.0 }}">{{ status.1 }}</option>
+                            {% endfor %}
+                        </select>
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Please select the status to be updated' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="checkbox" class="form-control text-template" id="id_username" style="font-size: 18px;" name="remote_work" value="true">
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Work remotely or not' %}
+                    </div>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+{#                    <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>返回首頁</span></a>#}
+                    <button type="submit" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" id="btn_send" ><span>{% trans 'Submit' %}</span></button>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>{% trans 'Back' %}</span></a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Update Work Status" %}' + ' · ' + '{% trans "My PassCode" %}';
+            document.getElementById('sidebar').style.display = "none";
+            document.getElementById('hamburger').style.display = "none";
+            document.getElementById('backpage').style.display = "";
+
+            var theme_color_layout = $.cookie("theme-color-layout");
+            var theme_color = $.cookie("theme-color");
+            if (theme_color == 'black-theme' && theme_color_layout == 'theme-dark'){
+                document.getElementById('btn_send').style.backgroundColor = '#2c2c2c';
+                document.getElementById('id_company').style.color = 'white';
+                document.getElementById('id_place').style.color = 'white';
+                document.getElementById('id_status').style.color = 'white';
+                document.getElementById('id_select').style.color = 'white';
+            }
+
+        });
+    </script>
+{% endblock %}

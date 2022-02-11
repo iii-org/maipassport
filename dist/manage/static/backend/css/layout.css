@@ -1,0 +1,212 @@
+﻿button, input, select, textarea {
+    font-family: inherit;
+    font-size: 100%;
+    margin: 0;
+}
+
+button, input {
+    line-height: normal;
+}
+
+button, select {
+    text-transform: none;
+}
+
+button, html input[type="button"] {
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+input[type="reset"], input[type="submit"] {
+    -webkit-appearance: button;
+    cursor: pointer;
+}
+
+button[disabled], html input[disabled] {
+    cursor: not-allowed;
+}
+
+input[type="checkbox"], input[type="radio"] {
+    box-sizing: border-box;
+    padding: 0;
+}
+
+input[type="search"] {
+    -webkit-appearance: textfield;
+    -moz-box-sizing: content-box;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+}
+
+    input[type="search"]::-webkit-search-cancel-button, input[type="search"]::-webkit-search-decoration {
+        -webkit-appearance: none;
+    }
+
+button::-moz-focus-inner, input::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+}
+
+textarea {
+    overflow: auto;
+    vertical-align: top;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+a {
+    text-decoration: none;
+}
+
+/*新細明體, 微軟正黑體,*/
+/*for h1 */
+/*for h1 */
+/*30 1.875, content tag padding top*/
+/*content*/
+header, footer, body, section, nav, article, div, .form_group, .content, .bottom_line, .group, .input_group {
+    zoom: 1;
+}
+
+    header:before, footer:before, body:before, section:before, nav:before, article:before, div:before, .form_group:before, .content:before, .bottom_line:before, .group:before, .input_group:before {
+        content: "";
+        display: table;
+    }
+
+    header:after, footer:after, body:after, section:after, nav:after, article:after, div:after, .form_group:after, .content:after, .bottom_line:after, .group:after, .input_group:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    section, header, nav, .content, .content section, footer {
+        margin: 0px auto;
+        position: relative;
+    }
+
+/*==default begine==*/
+/* or disabled*/
+/*==default begine==*/
+html {
+    background-color: #e6e9ec;
+    color: #111111;
+    line-height: 1.5;
+    font-family: Verdana;
+}
+
+    html * {
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+@media (min-width: 1200px) {
+    html {
+        overflow-x: hidden;
+    }
+}
+
+@media (min-width: 1440px) {
+    html {
+        overflow-x: hidden;
+    }
+}
+
+.content {
+    font-size: 0.9375rem;
+    font-family: Verdana;
+}
+
+/*==layout begine==*/
+#wrapper {
+    width: 100%;
+}
+
+section article {
+    *zoom: 1;
+    width: 960px;
+    width: 59.99975rem;
+    padding-left: 8px;
+    padding-left: 0.5rem;
+    padding-right: 8px;
+    padding-right: 0.5rem;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Verdana;
+}
+
+    section article:after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+
+    section article section article {
+        width: 100%;
+        padding: 0px;
+    }
+
+/*@include at-breakpoint(20em 8 48em) {
+  #wrapper{margin:0px auto;width:100%;}
+  section article{
+    width:100%;
+    section article{
+      width:100%;
+      padding:0px;
+    }
+   @include susy-grid-background;      
+  }
+}*/
+@media (min-width: 1200px) {
+    section article {
+        *zoom: 1;
+        width: 1200px;
+        width: 75rem;
+        padding-left: 10px;
+        padding-left: 0.625rem;
+        padding-right: 10px;
+        padding-right: 0.625rem;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: Verdana;
+    }
+
+        section article:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        section article section article {
+            width: 100%;
+            padding: 0px;
+        }
+}
+
+@media (min-width: 1440px) {
+    section article {
+        *zoom: 1;
+        width: 1440px;
+        width: 90rem;
+        padding-left: 15px;
+        padding-left: 0.9375rem;
+        padding-right: 15px;
+        padding-right: 0.9375rem;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: Verdana;
+    }
+
+        section article:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        section article section article {
+            width: 100%;
+            padding: 0px;
+        }
+}

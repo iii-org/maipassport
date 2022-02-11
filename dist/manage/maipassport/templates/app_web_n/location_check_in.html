@@ -1,0 +1,385 @@
+{% extends 'app_web_n/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block stylesheet %}
+    <style>
+        #map {
+            height: 230px;
+            width: 100%;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div style="height: 30px;"></div>
+        <form method="post" action="{% url 'chick_in_record' request.app_user.pub_id request.app_user.api_token %}">
+            {% csrf_token %}
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="latitude" name="latitude" style="font-size: 18px;" readonly>
+                        <label class="form-control-label " style="font-size: 18px;top: 0;">{% trans 'Current Latitude' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div style="height: 20px;"></div>#}
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="longitude" name="longitude" style="font-size: 18px;" readonly>
+                        <label class="form-control-label " style="font-size: 18px;top: 0">{% trans 'Current Longitude' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div style="height: 20px;"></div>#}
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_name">
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Activity Name' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div style="height: 20px;"></div>#}
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_organizer">
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Organizer' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div style="height: 20px;"></div>#}
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_org_contact">
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Organizer Contact' %} / {% trans 'Contact Number' %}</label>
+                    </div>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+{#                    <div id="map" class="embed-responsive embed-responsive-16by9"></div>#}
+                    <div id="map" ></div>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+{#                    <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>返回首頁</span></a>#}
+                    <button type="submit" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" id="btn_send"><span>{% trans 'Submit' %}</span></button>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>{% trans 'Back' %}</span></a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+{#    <script type="text/javascript" src="http://api.tgos.tw/TGOS_API/tgos?ver=2&AppID=x+JLVSx85Lk=&APIKey=in8W74q0ogpcfW/STwicK8D5QwCdddJf05/7nb+OtDh8R99YN3T0LurV4xato3TpL/fOfylvJ9Wv/khZEsXEWxsBmg+GEj4AuokiNXCh14Rei21U5GtJpIkO++Mq3AguFK/ISDEWn4hMzqgrkxNe1Q=="charset="utf-8"></script>#}
+    <script>
+        {#網頁取得地理位置#}
+        function getLocation2(){
+            var latitude;
+            var longitude;
+            if (navigator.geolocation) {
+                var geo=navigator.geolocation;
+                var option={
+                    enableAcuracy:false,
+                    maximumAge:0,
+                    timeout:600000
+                };
+                geo.getCurrentPosition(successCallback,
+                    errorCallback,
+                    option
+                );
+            }
+            else {
+                {#alert("此瀏覽器不支援地理定位功能!");#}
+                {#if ('{{ request.app_user }}'){#}
+                {#    location.href = "{% url 'app_logout' %}"}#}
+                $("#msg").text("{% trans 'This browser does not support geolocation!' %}");
+                $("#message_modal").modal();
+            }
+            function successCallback(position) {
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                {#document.getElementById('latitude').value = latitude;#}
+                {#document.getElementById('longitude').value = longitude;#}
+                $('#latitude').val(latitude);
+                $('#longitude').val(longitude);
+                var s = document.createElement("script");
+                s.type = "text/javascript";
+                if ('{{ request.COOKIES.language }}' == 'en-us'){
+                    {#s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=en-us";#}
+                    var _0x425c=['1kUgQeQ','7415XRRhZV','75lQyXhb','280820PYaVaV','182291EaXHVe','398kSPsoL','104578JSlObL','103669JJGPTV','7RbXffu','138jOVPlD','418919nsNUTs'];function _0x2f14(_0x38e2e5,_0x16b759){_0x38e2e5=_0x38e2e5-0x186;var _0x425c16=_0x425c[_0x38e2e5];return _0x425c16;}(function(_0x5acb24,_0x55253e){var _0x339f1a=_0x2f14;while(!![]){try{var _0x539173=-parseInt(_0x339f1a(0x18b))*-parseInt(_0x339f1a(0x187))+parseInt(_0x339f1a(0x18c))+parseInt(_0x339f1a(0x18d))*parseInt(_0x339f1a(0x189))+-parseInt(_0x339f1a(0x190))+parseInt(_0x339f1a(0x18f))*parseInt(_0x339f1a(0x18e))+parseInt(_0x339f1a(0x186))+parseInt(_0x339f1a(0x188))*-parseInt(_0x339f1a(0x18a));if(_0x539173===_0x55253e)break;else _0x5acb24['push'](_0x5acb24['shift']());}catch(_0x125be0){_0x5acb24['push'](_0x5acb24['shift']());}}}(_0x425c,0x49fd6),s['src']='https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=en-us');
+                }else{
+                    {#s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=zh-TW";#}
+                    var _0x3215=['144233hoNeqN','8419wULbqm','324387QrxVKl','55Gqegbh','src','18233GeBrVy','341570trDDjk','1mYCMUM','5435cvqBFi','165892NvCPNW','https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=zh-TW','7cBCZnY'];function _0x3587(_0x35012b,_0x3e2bc0){_0x35012b=_0x35012b-0x89;var _0x32150e=_0x3215[_0x35012b];return _0x32150e;}var _0x56b890=_0x3587;(function(_0x12674c,_0x5544fe){var _0xd05fc9=_0x3587;while(!![]){try{var _0x593e4b=-parseInt(_0xd05fc9(0x8a))+parseInt(_0xd05fc9(0x8e))+parseInt(_0xd05fc9(0x94))+-parseInt(_0xd05fc9(0x93))*parseInt(_0xd05fc9(0x8d))+parseInt(_0xd05fc9(0x8f))*-parseInt(_0xd05fc9(0x91))+parseInt(_0xd05fc9(0x90))*parseInt(_0xd05fc9(0x8b))+parseInt(_0xd05fc9(0x89));if(_0x593e4b===_0x5544fe)break;else _0x12674c['push'](_0x12674c['shift']());}catch(_0x2f52ad){_0x12674c['push'](_0x12674c['shift']());}}}(_0x3215,0x2ac85),s[_0x56b890(0x8c)]=_0x56b890(0x92));
+                }
+                // Use any selector
+                $("head").append(s);
+                document.getElementById('btn_send').removeAttribute('disabled');
+            }
+            function errorCallback(error) {
+                var errorTypes={
+                    0:"不明原因錯誤",
+                    1:"使用者拒絕提供位置資訊",
+                    2:"無法取得位置資訊",
+                    3:"位置查詢逾時"
+                };
+                {#alert(errorTypes[error.code]);#}
+                //alert(error.message);  //測試時用
+                {#if ('{{ request.app_user }}'){#}
+                {#    location.href = "{% url 'app_logout' %}"}#}
+                {#$("#msg").text("取得地址錯誤：" + errorTypes[error.code]);#}
+                {#$("#message_modal").modal();#}
+            }
+        }
+        function setLocationData(latitude, longitude){
+            $('#latitude').val(latitude);
+            $('#longitude').val(longitude);
+            var s = document.createElement("script");
+            s.type = "text/javascript";
+            if ('{{ request.COOKIES.language }}' == 'en-us'){
+                var _0x425c=['1kUgQeQ','7415XRRhZV','75lQyXhb','280820PYaVaV','182291EaXHVe','398kSPsoL','104578JSlObL','103669JJGPTV','7RbXffu','138jOVPlD','418919nsNUTs'];function _0x2f14(_0x38e2e5,_0x16b759){_0x38e2e5=_0x38e2e5-0x186;var _0x425c16=_0x425c[_0x38e2e5];return _0x425c16;}(function(_0x5acb24,_0x55253e){var _0x339f1a=_0x2f14;while(!![]){try{var _0x539173=-parseInt(_0x339f1a(0x18b))*-parseInt(_0x339f1a(0x187))+parseInt(_0x339f1a(0x18c))+parseInt(_0x339f1a(0x18d))*parseInt(_0x339f1a(0x189))+-parseInt(_0x339f1a(0x190))+parseInt(_0x339f1a(0x18f))*parseInt(_0x339f1a(0x18e))+parseInt(_0x339f1a(0x186))+parseInt(_0x339f1a(0x188))*-parseInt(_0x339f1a(0x18a));if(_0x539173===_0x55253e)break;else _0x5acb24['push'](_0x5acb24['shift']());}catch(_0x125be0){_0x5acb24['push'](_0x5acb24['shift']());}}}(_0x425c,0x49fd6),s['src']='https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=en-us');
+            }else{
+                var _0x3215=['144233hoNeqN','8419wULbqm','324387QrxVKl','55Gqegbh','src','18233GeBrVy','341570trDDjk','1mYCMUM','5435cvqBFi','165892NvCPNW','https://maps.googleapis.com/maps/api/js?key=AIzaSyB2LEFaoOZ3Al9A48SXiRzfIxryezVmeAE&callback=initMap&language=zh-TW','7cBCZnY'];function _0x3587(_0x35012b,_0x3e2bc0){_0x35012b=_0x35012b-0x89;var _0x32150e=_0x3215[_0x35012b];return _0x32150e;}var _0x56b890=_0x3587;(function(_0x12674c,_0x5544fe){var _0xd05fc9=_0x3587;while(!![]){try{var _0x593e4b=-parseInt(_0xd05fc9(0x8a))+parseInt(_0xd05fc9(0x8e))+parseInt(_0xd05fc9(0x94))+-parseInt(_0xd05fc9(0x93))*parseInt(_0xd05fc9(0x8d))+parseInt(_0xd05fc9(0x8f))*-parseInt(_0xd05fc9(0x91))+parseInt(_0xd05fc9(0x90))*parseInt(_0xd05fc9(0x8b))+parseInt(_0xd05fc9(0x89));if(_0x593e4b===_0x5544fe)break;else _0x12674c['push'](_0x12674c['shift']());}catch(_0x2f52ad){_0x12674c['push'](_0x12674c['shift']());}}}(_0x3215,0x2ac85),s[_0x56b890(0x8c)]=_0x56b890(0x92));
+            }
+            // Use any selector
+            $("head").append(s);
+            document.getElementById('btn_send').removeAttribute('disabled');
+        }
+        function initMap() {
+            var uluru = {lat: parseFloat($('#latitude').val()), lng: parseFloat($('#longitude').val())};
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 18,
+                center: uluru
+            });
+            var marker = new google.maps.Marker({
+                position: uluru,
+                map: map
+            });
+
+        }
+
+        {#TGO MAP#}
+        var messageBox;		//訊息視窗物件
+		var pMap;			//初始化地圖物件
+        var imgUrl = "https://api.tgos.tw/TGOS_API/images/marker2.png";	//標記點圖示來源
+
+        function getLocation3(){
+            var latitude;
+            var longitude;
+            if (navigator.geolocation) {
+                var geo=navigator.geolocation;
+                var option={
+                    enableAcuracy:false,
+                    maximumAge:0,
+                    timeout:600000
+                };
+                geo.getCurrentPosition(successCallback,
+                    errorCallback,
+                    option
+                );
+            }
+            else {
+                {#alert("此瀏覽器不支援地理定位功能!");#}
+                {#if ('{{ request.app_user }}'){#}
+                {#    location.href = "{% url 'app_logout' %}"}#}
+                $("#msg").text("{% trans 'This browser does not support geolocation!' %}");
+                $("#message_modal").modal();
+            }
+            function successCallback(position) {
+                latitude = position.coords.latitude;
+                longitude = position.coords.longitude;
+                {#document.getElementById('latitude').value = latitude;#}
+                {#document.getElementById('longitude').value = longitude;#}
+                $('#latitude').val(latitude);
+                $('#longitude').val(longitude);
+                var s = document.createElement("script");
+
+                var TT = new TGOS.TGTransformation();
+                TT.wgs84totwd97(longitude,latitude);
+                var x = TT.transResult.x;
+                var y = TT.transResult.y;
+
+                console.log(x, y);
+
+		        var markerPoint = new TGOS.TGPoint(x, y);
+		        var infotext = '' + latitude + ', ' + longitude;
+
+                //------------------初始化地圖--------------------
+                var pOMap = document.getElementById("map");
+                var mapOptiions = {
+                    scaleControl: false,		//不顯示比例尺
+                    navigationControl: true,	//顯示地圖縮放控制項
+                    navigationControlOptions: {	//設定地圖縮放控制項
+                        controlPosition: TGOS.TGControlPosition.TOP_LEFT,	//控制項位置
+                        navigationControlStyle: TGOS.TGNavigationControlStyle.SMALL	//控制項樣式
+                    },
+                    mapTypeControl: false		//不顯示地圖類型控制項
+                };
+                pMap = new TGOS.TGOnlineMap(pOMap, TGOS.TGCoordSys.EPSG3826, mapOptiions);	//建立地圖,選擇TWD97坐標
+                pMap.setZoom(11);				//初始地圖縮放層級
+                pMap.setCenter(markerPoint);	//初始地圖中心點
+
+                //------------------建立標記點---------------------
+                var markerImg = new TGOS.TGImage(imgUrl, new TGOS.TGSize(38, 33), new TGOS.TGPoint(0, 0), new TGOS.TGPoint(10, 33));	//設定標記點圖片及尺寸大小
+                var pTGMarker = new TGOS.TGMarker(pMap, markerPoint,'', markerImg);	//建立機關單位標記點
+
+                //-----------------建立訊息視窗--------------------
+                var InfoWindowOptions = {
+                    maxWidth:4000,	//訊息視窗的最大寬度
+                    pixelOffset: new TGOS.TGSize(5, -30),	//InfoWindow起始位置的偏移量, 使用TGSize設定, 向右X為正, 向上Y為負
+                    zIndex:99			//視窗堆疊順序
+                };
+                messageBox = new TGOS.TGInfoWindow(infotext, markerPoint, InfoWindowOptions);	//建立訊息視窗
+                TGOS.TGEvent.addListener(pTGMarker, "mouseover", openInfoWindow);	//滑鼠監聽事件--開啟訊息視窗
+                TGOS.TGEvent.addListener(pTGMarker, "mouseout", closeInfoWindow);	//滑鼠監聽事件--關閉訊息視窗
+
+
+                // Use any selector
+                $("head").append(s);
+                document.getElementById('btn_send').removeAttribute('disabled');
+            }
+            function errorCallback(error) {
+                var errorTypes={
+                    0:"不明原因錯誤",
+                    1:"使用者拒絕提供位置資訊",
+                    2:"無法取得位置資訊",
+                    3:"位置查詢逾時"
+                };
+            }
+        }
+        function openInfoWindow() {	//開啟訊息視窗函式
+			messageBox.open(pMap);
+		}
+
+		function closeInfoWindow() {	//關閉訊息視窗函式
+			messageBox.close();
+		}
+
+
+        $(document).ready(function() {
+
+            var request_device = '{{ request.session.DEVICE}}';
+            if (request_device == "ANDROID"){
+                getLocationFunc();
+            }else{
+                getLocation2();
+            }
+
+            {#getLocation2();#}
+            {#document.getElementById("btn_send").setAttribute("disabled", "disabled");#}
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Check In" %}' + ' · ' + '{% trans "My PassCode" %}';
+            document.getElementById('sidebar').style.display = "none";
+            document.getElementById('hamburger').style.display = "none";
+            document.getElementById('backpage').style.display = "";
+
+
+            document.getElementById('btn_send').setAttribute('disabled', 'disabled');
+
+            if ($('#latitude').val() == ''){
+                document.getElementById('latitude').placeholder = '{% trans 'locating' %}...';
+            }
+            if ($('#longitude').val() == '') {
+                document.getElementById('longitude').placeholder = '{% trans 'locating' %}...';
+            }
+            {#if ($("#latitude").val() == '' && $("#longitude").val() == '' ) {#}
+            {#    var timer = null, interval = 1000, value = 0;#}
+
+                {#timer = setInterval(function () {#}
+                {#    if ($("#latitude").val() == '' && $("#longitude").val() == '' ) {#}
+                {#        value += 1;#}
+                {#        if (value > 3){#}
+                {#            clearInterval(timer);#}
+                            {#getLocation2();#}
+                            {#value = 0;#}
+                            {#timer = setInterval(function () {#}
+                            {#    if ($("#latitude").val() == '' && $("#longitude").val() == '' ) {#}
+                            {#        value += 1;#}
+                            {#        if (value > 8){#}
+                            {#            clearInterval(timer);#}
+                                        {#$("#msg").text('取得地址錯誤：取得位置失敗');#}
+                                        {#$("#message_modal").modal();#}
+                            {#        }#}
+                            {#    }else{#}
+                            {#        clearInterval(timer);#}
+                                    {#var s = document.createElement("script");#}
+                                    {#s.type = "text/javascript";#}
+                                    {#s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDs2Ut47DrzCv1lxxtxIB5toGTkNkbV_Wg&callback=initMap";#}
+                                    {#// Use any selector#}
+                                    {#$("head").append(s);#}
+                            {#    }}, interval);#}
+                        {# } }else{#}
+                        {#clearInterval(timer);#}
+                        {#var s = document.createElement("script");#}
+                        {#s.type = "text/javascript";#}
+                        {#s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDs2Ut47DrzCv1lxxtxIB5toGTkNkbV_Wg&callback=initMap";#}
+                        {#// Use any selector#}
+                        {#$("head").append(s);#}
+                    {#  } }, interval);#}
+            {# }else{#}
+                {#var s = document.createElement("script");#}
+                {#s.type = "text/javascript";#}
+                {#s.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDs2Ut47DrzCv1lxxtxIB5toGTkNkbV_Wg&callback=initMap";#}
+                {#// Use any selector#}
+                {#$("head").append(s);#}
+            {# }#}
+
+            var theme_color_layout = $.cookie("theme-color-layout");
+            var theme_color = $.cookie("theme-color");
+            var s;
+            if (theme_color == 'black-theme' && theme_color_layout == 'theme-dark'){
+                document.getElementById('btn_send').style.backgroundColor = '#2c2c2c';
+                {#document.getElementById('id_company').style.color = 'white';#}
+                {#document.getElementById('id_place').style.color = 'white';#}
+                {#document.getElementById('id_status').style.color = 'white';#}
+                {#document.getElementById('id_select').style.color = 'white';#}
+                s=document.getElementsByTagName('input');
+                for(var i=0;i<s.length;i++)
+                {
+                    s[i].setAttribute("style","color:white");
+                }
+            }
+
+            if (request_device == "ANDROID"){
+                var timer = null, interval = 1000, value = 0;
+
+                timer = setInterval(function () {
+                    if ($("#latitude").val() == '' && $("#longitude").val() == '' ) {
+                        value += 1;
+                        if (value > 10){
+                            clearInterval(timer);
+                            getLocation();
+                            value = 0;
+                            timer = setInterval(function () {
+                                if ($("#latitude").val() == '' && $("#longitude").val() == '' ) {
+                                    value += 1;
+                                    if (value > 10){
+                                        clearInterval(timer);
+                                        {#$("#msg").text('取得地址錯誤：取得位置失敗');#}
+                                        {#$("#message_modal").modal();#}
+                                    }
+                                }else{
+                                    clearInterval(timer);
+                                }}, interval);
+                        }}else{
+                        clearInterval(timer);}
+                }, interval);
+            }
+        });
+
+
+    </script>
+{#    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs2Ut47DrzCv1lxxtxIB5toGTkNkbV_Wg&callback=initMap"></script>#}
+{#    <script src="http://maps.google.com/maps/api/js?sensor=false" type="text/javascript"></script>#}
+{% endblock %}

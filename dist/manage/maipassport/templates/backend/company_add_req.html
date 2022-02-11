@@ -1,0 +1,387 @@
+{% extends 'backend/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load utils %}
+{% block stylesheet %}
+    <style>
+        .modal {
+            text-align: center;
+            padding: 0!important;
+        }
+
+        .modal:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -4px;
+        }
+
+        .modal-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        nav ul.mainNav > li {
+            z-index: 100;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 col-sm-10 col-xs-10 bread-sec">
+                <a href="{% url 'backend_index' %}" style="color:#868686;text-decoration: none;"> 首頁 </a>><a style="color:#868686;text-decoration: none;"> 系統管理 </a>><a href="{% url 'audit_add_req' request.session.company_manage_id_sel_now %}" style="color:#868686;text-decoration: none;"> 審核申請 </a>
+{#                ><a href="#" style="color:#868686;text-decoration: none;">部門晉升提報與查詢</a> </div>#}
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12 " style="margin: 20px 0 20px 0px;font-size:25px; "> 審核申請 <img src="{% static 'backend/images/LINE.png' %}" class="img-responsive top5" alt="" /> </div>
+        </div>
+    </div>
+    <div class="container bottom40">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12 " >
+                <div style="font-size: 15px;">
+                    <div class=" col-lg-12 col-xs-12 ">
+                        <form class="form-horizontal"  method="get" id="frm">
+                            <input type="hidden" name="return_msg" id="return_msg" value="{{ return_msg }}">
+                            <input type="hidden" value="{{ request.GET.per_page_num }}" id="per_page_num" name="per_page_num">
+                            <div class="form-group ">
+                                <div class="col-md-1"><input type="radio" class="pull-right" style="margin-top: 10px;" checked id="fst_name_radio" onclick="radio_sel('fst_name')"></div>
+                                <div class="col-md-3">
+                                    <select class="form-control selectpicker" name="user_first_name" id="user_first_name" data-live-search="true" title="{% trans 'Please Select User' %}" onchange="$('#fst_name_radio').prop('checked', true); $('#account_radio').prop('checked', false); $('#user_account')[0].selectedIndex = 0; $('#user_account').selectpicker('refresh');">
+                                        <option value="">無</option>
+                                        {% for app_user_name in app_user_name_list %}
+                                            <option {% if request.GET.user_first_name == app_user_name %}selected{% endif %} value="{{ app_user_name }}">{{ app_user_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-1 text-center"><label class="form-control" style="border: 0px;">或</label></div>
+                                <div class="col-md-1"><input type="radio" class="pull-right" style="margin-top: 10px;" id="account_radio" onclick="radio_sel('account')"></div>
+                                <div class="col-md-3">
+                                    <select class="form-control selectpicker" name="user_account" id="user_account" data-live-search="true" title="{% trans 'Please Select Account' %}" onchange="$('#account_radio').prop('checked', true); $('#fst_name_radio').prop('checked', false); $('#user_first_name')[0].selectedIndex = 0; $('#user_first_name').selectpicker('refresh');">
+                                        <option value="">無</option>
+                                        {% for app_user_account in app_user_account_list %}
+                                            <option {% if request.GET.user_account == app_user_account %}selected{% endif %} value="{{ app_user_account }}">{{ app_user_account }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-3 text-right">
+                                    <button type="button" class="btn btn-default" style="background:#8b8c8c;color:#fff; " onclick="reset_frm()">清除搜尋</button>
+                                    <button type="submit" class="btn btn-default" style="background:#6fa1bf;color:#fff; ">搜尋使用者</button>
+                                </div>
+                            </div>
+{#                            <div class="form-group">#}
+{#                                <div class="col-md-3 text-right">#}
+{#                                    <button type="button" class="btn btn-default" style="background:#8b8c8c;color:#fff; " onclick="reset_frm()">清除搜尋</button>#}
+{#                                    <button type="submit" class="btn btn-default" style="background:#6fa1bf;color:#fff; ">搜尋使用者</button>#}
+{#                                </div>#}
+{#                                <div class="text-right col-md-2 ">#}
+{#                                    <button type="button" class="btn btn-default" style="background:#8b8c8c;color:#fff; ">清除搜尋</button>#}
+{#                                </div>#}
+{#                            </div>#}
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+{#        <div class="col-12">#}
+{#            <div class="col-2">#}
+{#                <button type="submit" class="btn btn-default" style="background:#335eb6;color:#fff; ">更新後台管理者</button>#}
+{#                <button type="submit" class="btn btn-default" style="background:#8b8c8c;color:#fff; ">搜尋使用者</button>#}
+{#            </div>#}
+{#        </div>#}
+
+        <div class="pc_top row top20">
+            <div class="col-md-12 col-sm-12 col-xs-12 " style="font-size: 16px;">
+                <table class="table table-striped table-bordered" >
+                    <tr>
+                        <th class="text-center cen_blue">更新時間</th>
+                        <th class="text-center cen_blue">使用者名稱</th>
+                        <th class="text-center cen_blue">使用者帳號</th>
+                        <th class="text-center cen_blue">請求公司/學校</th>
+                        <th class="text-center cen_blue">請求狀態</th>
+                        <th class="text-center cen_blue">審核者</th>
+                        <th class="text-center cen_blue">操作</th>
+                    </tr>
+                    {% for add_req in add_req_list %}
+                        <tr>
+                            <td class="cen text-center">{{ add_req.create_time }}</td>
+                            <td class="cen text-center">{{ add_req.add_user.auth_user.first_name }}</td>
+                            <td class="cen text-center">{{ add_req.add_user.auth_user.username }}</td>
+                            <td class="cen text-center">{{ add_req.add_tag.company.name }}</td>
+                            <td class="cen text-center">{{ add_req.get_status_display }}</td>
+                            <td class="cen text-center">
+                                {% if add_req.update_user_id %}
+                                    {% if add_req.update_user_id == 'ADMIN' %}
+                                        {{ add_req.update_user_name }}
+                                    {% else %}
+                                        {% if add_req.user_link %}
+                                            <a href="{% url 'staff_detail' request.session.company_manage_id_sel_now add_req.agree_user.pub_id %}">{{ add_req.update_user_name }}</a>
+                                        {% else %}
+                                            {{ add_req.update_user_name }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="cen text-center">
+                                {% if add_req.status == add_req.WAIT_AUDIT %}
+                                    <a onclick="agree_req('{{ add_req.pub_id }}', '{{ add_req.add_tag.company.pub_id }}')" data-toggle="modal" data-target="#agree_modal" style="cursor: pointer;" title="同意"><i class="fa fa-check"></i></a>
+                                    <a onclick="cancel_req('{{ add_req.pub_id }}', '{{ add_req.add_tag.company.pub_id }}')" data-toggle="modal" data-target="#cancel_modal" style="cursor: pointer;" title="取消"><i class="fa fa-times"></i></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="col-md-1"></div>
+            <div class="col-md-11 col-xs-12 top10 ">
+                <ul class="pagination" style="float: left;">
+                    <li class="page-item {% if add_req_list.number == 1 %}disabled{% endif %}">
+                        <a href="{{ request.get_full_path|change_page:1 }}" aria-label="Previous">首頁 </a>
+                    </li>
+                    <li class="page-item {% if not add_req_list.has_previous %}disabled{% endif %}">
+                        {% if add_req_list.has_previous %}
+                            <a href="{{ request.get_full_path|change_page:add_req_list.previous_page_number }}" aria-label="Previous">上頁 </a>
+                        {% else %}
+                            <a href="#" aria-label="Previous">上頁 </a>
+                        {% endif %}
+                    </li>
+                    {% for num in page_range %}
+                        <li class="page-item {% if num == add_req_list.number %}active{% endif %}"><a href="{{ request.get_full_path|change_page:num }}">{{ num }}</a></li>
+                    {% endfor %}
+                    <li class="page-item {% if not add_req_list.has_next %}disabled{% endif %}">
+                        {% if add_req_list.has_next %}
+                            <a href="{{ request.get_full_path|change_page:add_req_list.next_page_number }}" aria-label="Next">下頁 </a>
+                        {% else %}
+                            <a href="#" aria-label="Next">下頁 </a>
+                        {% endif %}
+                    </li>
+                    <li class="page-item {% if add_req_list.number == add_req_list.paginator.num_pages %}disabled{% endif %}" >
+                        <a href="{{ request.get_full_path|change_page:add_req_list.paginator.num_pages }}" aria-label="Next">末頁 </a>
+                    </li>
+                </ul>
+                <div class="col-md-5 top20">
+                    <div style="color:#000;float: left;margin:10px  ">每頁顯示</div>
+                    <div class="col-md-4 col-xs-12 bottom10">
+                        <select class="form-control selectpicker" onchange="resize_list_num()" id="per_page_num_sel">
+                            <option {% if request.GET.per_page_num == '10' %}selected{% endif %} value="10">10</option>
+                            <option {% if request.GET.per_page_num == '20' %}selected{% endif %} value="20">20</option>
+                        </select>
+                    </div>
+                    <div style="color:#000;float: left;margin:10px  ">筆(共{{ user_length }}筆)</div>
+                </div>
+            </div>
+        </div>
+        <div class="mobile_top row top20">
+            <div class="col-xs-12 " style="font-size: 16px;">
+                <table class="table table-striped table-bordered" >
+                    <tr>
+                        <th class="text-center cen_blue">更新時間</th>
+                        <th class="text-center cen_blue">使用者名稱</th>
+                        <th class="text-center cen_blue">請求狀態</th>
+                        <th class="text-center cen_blue">審核者</th>
+                        <th class="text-center cen_blue">操作</th>
+                    </tr>
+                    {% for add_req in add_req_list %}
+                        <tr>
+                            <td class="cen text-center">{{ add_req.create_time }}</td>
+                            <td class="cen text-center">{{ add_req.add_user.auth_user.first_name }}</td>
+                            <td class="cen text-center">{{ add_req.get_status_display }}</td>
+                            <td class="cen text-center">
+                                {% if add_req.update_user_id %}
+                                    {% if add_req.update_user_id == 'ADMIN' %}
+                                        {{ add_req.update_user_name }}
+                                    {% else %}
+                                        {% if add_req.user_link %}
+                                            <a href="{% url 'staff_detail' request.session.company_manage_id_sel_now add_req.agree_user.pub_id %}">{{ add_req.update_user_name }}</a>
+                                        {% else %}
+                                            {{ add_req.update_user_name }}
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="cen text-center">
+                                {% if add_req.status == add_req.WAIT_AUDIT %}
+                                    <a onclick="agree_req('{{ add_req.pub_id }}', '{{ add_req.add_tag.company.pub_id }}')" data-toggle="modal" data-target="#agree_modal" style="cursor: pointer;" title="同意"><i class="fa fa-check"></i></a>
+                                    <a onclick="cancel_req('{{ add_req.pub_id }}', '{{ add_req.add_tag.company.pub_id }}')" data-toggle="modal" data-target="#cancel_modal" style="cursor: pointer;" title="取消"><i class="fa fa-times"></i></a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- DialogIconedInfo -->
+    <div class="modal fade" id="agree_modal" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label class="modal-title text-template" id="exampleModalLabel">同意請求</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col-md-12">
+                            <form class="form-horizontal" id="add_frm" action="{% url 'company_update_req' request.session.company_manage_id_sel_now 'AGREE' %}" method="post">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <select class="form-control selectpicker" name="department_id" id="department_id" data-live-search="true" title="{% trans 'Please Select Department' %}" required>
+                                            {% for department in department_list %}
+                                                <option value="{{ department.pub_id }}">{{ department.name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <input type="hidden" name="page2" value="{{ add_req_list.number }}">
+                                    <input type="hidden" id="req_id" name="req_id">
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="if ($('#add_frm')[0].checkValidity()){$('#add_frm').submit();}else{$('#add_frm')[0].reportValidity();}">同意請求</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="cancel_modal" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label class="modal-title text-template" id="exampleModalLabel">取消請求</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col-md-12">
+                            <form class="form-horizontal" id="cancel_frm" action="{% url 'company_update_req' request.session.company_manage_id_sel_now  'CANCEL' %}" method="post">
+                                {% csrf_token %}
+                                <div class="col-md-12">
+                                    <h4 class="control-label col-md-4">確定要取消嗎？</h4>
+                                </div>
+                                <input type="hidden" name="page2" value="{{ add_req_list.number }}">
+                                <input type="hidden" id="req_id_c" name="req_id">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="$('#cancel_frm').submit();">確定取消</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="otp_send_notify" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label class="modal-title text-template" id="exampleModalLabel">小提示</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col text-center">
+                            <p id="msg"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- * DialogIconedInfo -->
+{% endblock %}
+
+{% block js %}
+    <script>
+        function reset_frm() {
+            $("#user_first_name")[0].selectedIndex = 0;
+            $("#user_first_name").selectpicker('refresh');
+            $("#user_account")[0].selectedIndex = 0;
+            $("#user_account").selectpicker('refresh');
+        }
+        function resize_list_num(){
+            var per_page_num = $('#per_page_num_sel').val();
+            $('#per_page_num').val(per_page_num);
+            var api_url = '{% url "audit_add_req" 'COMPANY_ID' %}';
+            api_url = api_url.replace('COMPANY_ID', $('#company_manage_id_sel_now').val());
+            api_url += '?per_page_num=' + per_page_num;
+            if ($('#user_first_name').val() != ''){
+                api_url += '&user_first_name=' + $('#user_first_name').val();
+            }
+            if ($('#user_account').val() != ''){
+                api_url += '&user_account=' + $('#user_account').val();
+            }
+            location.href=api_url;
+        }
+        function radio_sel(sel_type) {
+        if (sel_type == 'account'){
+            $('#fst_name_radio').prop('checked', false);
+            $('#account_radio').prop('checked', true);
+            {#$('#user_account').prop('disabled', false);#}
+            $("#user_account").selectpicker('refresh');
+            $("#user_first_name")[0].selectedIndex = 0;
+            {#$('#user_first_name').prop('disabled', true);#}
+            $("#user_first_name").selectpicker('refresh');
+        }else{
+            $('#fst_name_radio').prop('checked', true);
+            {#$('#user_first_name').prop('disabled', false);#}
+            $("#user_first_name").selectpicker('refresh');
+            $('#account_radio').prop('checked', false);
+            $("#user_account")[0].selectedIndex = 0;
+            {#$('#user_account').prop('disabled', true);#}
+            $("#user_account").selectpicker('refresh');
+        }
+    }
+        function agree_req(req_id, company_id){
+            $('#req_id').val(req_id);
+            {#$('#company_id').val(company_id);#}
+        }
+        function cancel_req(req_id, company_id){
+            $('#req_id_c').val(req_id);
+            {#$('#company_id_c').val(company_id);#}
+        }
+        $(document).ready(function() {
+            $('#datetimepicker_min').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm',
+                locale: 'zh-cn'
+            });
+            $('#datetimepicker_max').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm',
+                locale: 'zh-cn',
+                useCurrent: false
+            });
+            $("#datetimepicker_min").on("dp.change", function (e) {
+                $('#datetimepicker_max').data("DateTimePicker").minDate(e.date);
+            });
+            $("#datetimepicker_max").on("dp.change", function (e) {
+                $('#datetimepicker_min').data("DateTimePicker").maxDate(e.date);
+            });
+            if ($('#return_msg').val() != ''){
+
+                $("#msg").text($('#return_msg').val() );
+                $("#otp_send_notify").modal();
+             }
+        });
+    </script>
+{% endblock %}

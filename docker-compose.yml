@@ -1,0 +1,59 @@
+version: "3"
+
+services:
+  db:
+    image: postgres:10
+    restart: always
+    volumes:
+      -   pgdata-maipassport2-default:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=maipassport2
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=maipassportdefault123
+    ports:
+      - 5412:5432
+
+  redis:
+    image: redis:4
+    restart: always
+    volumes:
+      - redis-data:/data
+    ports:
+      - 6379:6379
+    command: ["redis-server", "--appendonly", "yes"]
+
+#  web:
+#    build: .
+#    image: mai_game_web
+#    command: bash -c "python manage.py migrate && python manage.py runserver 0:8000"
+#    ports:
+#      - 8000:8000
+#    depends_on:
+#      - redis
+#
+#  celery-worker:
+#    image: mai_game_web
+#    command: celery -A core worker -l info
+#    depends_on:
+#      - web
+#      - redis
+#
+#  celery-beat:
+#    image: mai_game_web
+#    command: celery -A core beat -l info
+#    depends_on:
+#      - web
+#      - redis
+
+#  celery-flower:
+#    image: mai_game_web
+#    command: celery -A core flower
+#    ports:
+#      - "5555:5555"
+#    depends_on:
+#      - celery-worker
+#      - celery-beat
+
+volumes:
+  pgdata-maipassport2-default:
+  redis-data:

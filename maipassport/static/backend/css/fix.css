@@ -1,0 +1,42 @@
+/* Welcome to Compass. Use this file to define print styles.
+ * Import this file using the following HTML or equivalent:
+ * <link href="/stylesheets/print.css" media="print" rel="stylesheet" type="text/css" /> */
+
+.ie select.select{
+	min-width:auto;
+}
+.ie9 select.select{
+	background-image: none;
+	padding-right: 0;
+}
+*::-ms-backdrop, select.select{/*IE11 +*/
+	min-width:auto;
+}
+
+select.select::-ms-expand { display: none; }
+
+
+
+
+/*modify*/
+
+.width_100{width:100%;}
+
+
+/*checkbox */
+*::-ms-backdrop, .list_radios label:before,
+*::-ms-backdrop, .list_radios_inline label:before,
+.ie .list_radios label:before,
+.ie .list_radios_inline label:before{top:10px;}
+
+*::-ms-backdrop,.list_radios label:after, 
+*::-ms-backdrop,.list_radios_inline label:after,
+.ie .list_radios label:after,
+.ie .list_radios_inline label:after{top:15px;}
+.list_checkbox input:checked + label:before, .list_checkbox_inline input:checked + label:before{font-size: 15px;}
+
+
+.ie1 label{display: block;}
+
+.delete_btn:after, .edit_btn:after, .preview_btn:after{left: -35px;right: unset;position: relative;}
+label, input, select, select + span, .input_group + span, .tooltip, .form_control, .btn, .grop span{height: 35px;}

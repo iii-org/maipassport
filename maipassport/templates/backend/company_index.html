@@ -1,0 +1,703 @@
+{% extends 'backend/base.html' %}
+{% load static %}
+{% load utils %}
+{% block stylesheet %}
+    <style>
+        .modal {
+            text-align: center;
+            padding: 0!important;
+        }
+
+        .modal:before {
+            content: '';
+            display: inline-block;
+            height: 100%;
+            vertical-align: middle;
+            margin-right: -4px;
+        }
+
+        .modal-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        nav ul.mainNav > li {
+            z-index: 100;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+{#    <div class="container">#}
+{#        <div class="row">#}
+{#            <div class="col-md-10 col-sm-10 col-xs-10 bread-sec">#}
+{#                <a href="{% url 'company_index' request.session.company_manage_id_sel_now %}" style="color:#868686;text-decoration: none;">首頁</a>#}
+{#                ><a href="#" style="color:#868686;text-decoration: none;">部門晉升提報與查詢</a> </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12 " style="margin: 20px 0 20px 0px;font-size:25px; "> 首頁 <img src="{% static 'backend/images/LINE.png' %}" class="img-responsive top5" alt="" /> </div>
+        </div>
+    </div>
+    <div class="container ">
+        <div class="row">
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <div style="font-size: 15px;padding:45px 0 15px;">
+                    <div class="col-lg-offset-1 col-lg-10 col-xs-12">
+                        <form class="form-horizontal">
+                            <div class="mobile_top">
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 目前查看：</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" id="company_manage_id_sel" onchange="change_company()">
+                                            {% for user_company in request.company_manage %}
+                                                <option
+                                                        {% if request.session.company_manage_id_sel_now == user_company.url_pub_id %}
+                                                            selected
+                                                        {% endif %}
+                                                            value="{{ user_company.url_pub_id }}">
+                                                    {% if user_company.manage_enabled %}
+                                                        {{ user_company.company.name }}
+                                                    {% else %}
+                                                        {{ user_company.company.name }} - {{ user_company.department.name }}
+                                                    {% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1" class="col-md-3 control-label"> 公司名稱</label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" placeholder="" readonly value="{{ company_name }}">
+                                </div>
+
+                            </div>
+                            {% if request.session.manage_role == 'DEPARTMENT' %}
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 部門名稱</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control" placeholder="" readonly value="{{ department_name }}">
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="form-group">
+                                <label for="exampleInputPassword1" class="col-md-3 control-label">
+                                    {% if request.session.manage_role == 'COMPANY' %}
+                                        員工數
+                                    {% else %}
+                                        部門員工數
+                                    {% endif %}
+                                </label>
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" placeholder="" readonly value="{{ staff_num }}">
+                                </div>
+
+                            </div>
+                            {% if request.session.manage_role == 'COMPANY' %}
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 部門數</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control" placeholder="" readonly value="{{ department_num }}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 地點數</label>
+                                    <div class="col-md-9">
+                                        <input type="text" class="form-control" placeholder="" readonly value="{{ place_num }}">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 新增人員<br>QR Code</label>
+                                    <div class="col-md-9">
+                                        <a onclick="get_qr_img('{{ add_tag }}')" data-toggle="modal" data-target="#qr_img_modal" style="text-decoration:none; cursor: pointer;">
+                                            <label class="control-label">ADDORG__{{ add_tag }}</label> <i class="fas fa-search"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="exampleInputPassword1" class="col-md-3 control-label"> 新審核申請{% if new_add_req %}<label style="font-size: 10px;color: red;">∙</label>{% endif %}</label>
+                                    <div class="col-md-9">
+    {#                                    <input type="text" class="form-control" placeholder="" readonly value="{{ add_req_num }}">#}
+    {#                                    <label class="form-control" ><a href="{% url 'audit_add_req' request.session.company_manage_id_sel_now %}">{{ add_req_num }}</a></label>#}
+                                        <a href="{% url 'audit_add_req' request.session.company_manage_id_sel_now %}" style="margin-left: 0px; margin-right: 0px; cursor: pointer;">
+                                            <label class="form-control" style="cursor: pointer; {% if new_add_req %}color: red;{% endif %} ">{{ add_req_num }}</label>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12">
+                <div class="card shadow mt-4 h-200 overflow-hidden">
+                    <div class="card-body">
+                        <h5 class="mb-0 font-weight-normal">員工使用紀錄</h5>
+                        <p class="text-mute text-secondary">{{ start_time }} ~ {{ end_time }}</p>
+
+                    </div>
+                    <div class="h-200 top-10">
+                        <canvas id="linechart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-xs-12 " style="margin: 20px 0 20px 0px;font-size:25px; "> 今日掃描紀錄 <img src="{% static 'backend/images/LINE.png' %}" class="img-responsive top5" alt="" /> </div>
+        </div>
+    </div>
+    <div class="container ">
+        <input type="hidden" name="return_msg" id="return_msg" value="{{ return_msg }}">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="active"><a data-toggle="tab" href="#approach">使用者接觸紀錄</a></li>
+            {% if request.session.manage_role == 'COMPANY' %}
+                <li><a data-toggle="tab" href="#place">地點被掃描紀錄</a></li>
+            {% endif %}
+            <li><a data-toggle="tab" href="#danger">危險名單{% if danger_record_list %}<label style="font-size: 10px;color: red;">∙</label>{% endif %}</a></li>
+        </ul>
+        <div class="tab-content">
+            <div id="approach" class="tab-pane fade in active">
+                <div class="row top5">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <table class="table table-striped table-bordered" >
+                            <tr>
+                                <th class="text-center cen_blue">日期</th>
+                                <th class="text-center cen_blue">被掃描使用者</th>
+                                <th class="text-center cen_blue">掃描使用者</th>
+                                <th class="text-center cen_blue">紀錄類型</th>
+                            </tr>
+                            {% for record in approach_record_list %}
+                                <tr>
+                                    <td class="cen text-center">{{ record.created | date:"Y-m-d H:i:s" }}</td>
+                                    <td class="cen text-center" >
+                                        {% if record.app_user_link %}
+                                            <a href="{% url 'staff_detail' request.session.company_manage_id_sel_now record.app_user.pub_id %}">{{ record.app_user.auth_user.first_name }}</a>
+                                        {% else %}
+                                            {{ record.app_user.auth_user.first_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="cen text-center" >
+                                        {% if record.scan_user_link %}
+                                            <a href="{% url 'staff_detail' request.session.company_manage_id_sel_now record.scan_user.pub_id %}">{{ record.scan_user.auth_user.first_name }}</a>
+                                        {% else %}
+                                            {{ record.scan_user.auth_user.first_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="cen text-center" >
+                                        {% if record.type == record.APPROACH_CHECK %}
+                                            接觸紀錄
+                                        {% elif record.type == record.HEALTH_CHECK %}
+                                            健康碼紀錄
+                                        {% elif record.type == record.VISITOR_CHECK %}
+                                            訪客紀錄
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                        <div class="center">
+                            <ul class="pagination" style="float: left;">
+                                <li class="page-item {% if not approach_record_list.has_previous %}disabled{% endif %}">
+                                    {% if approach_record_list.has_previous %}
+                                        <a href="{{ request.get_full_path|change_page:approach_record_list.previous_page_number }}" aria-label="Previous">上頁 </a>
+                                    {% else %}
+                                        <a href="#" aria-label="Previous">上頁 </a>
+                                    {% endif %}
+                                </li>
+                                {% for num in page_range %}
+                                    <li class="page-item {% if num == approach_record_list.number %}active{% endif %}"><a href="{{ request.get_full_path|change_page:num }}">{{ num }}</a></li>
+                                {% endfor %}
+                                <li class="page-item {% if not approach_record_list.has_next %}disabled{% endif %}">
+                                    {% if approach_record_list.has_next %}
+                                        <a href="{{ request.get_full_path|change_page:approach_record_list.next_page_number }}" aria-label="Next">下頁 </a>
+                                    {% else %}
+                                        <a href="#" aria-label="Next">下頁 </a>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% if request.session.manage_role == 'COMPANY' %}
+                <div id="place" class="tab-pane fade">
+                    <div class="row top5">
+                        <div class="col-md-12 col-sm-12 col-xs-12">
+                            <table class="table table-striped table-bordered" >
+                                <tr>
+                                    <th class="text-center cen_blue">日期</th>
+                                    <th class="text-center cen_blue">地點</th>
+                                    <th class="text-center cen_blue">掃描使用者</th>
+                                    {#                        <th class="text-center cen_blue">紀錄類型</th>#}
+                                </tr>
+                                {% for record in place_entry_record_list %}
+                                    <tr>
+                                        <td class="cen text-center">{{ record.created | date:"Y-m-d H:i:s" }}</td>
+                                        <td class="cen text-center" ><a style="cursor: pointer;" onclick="place_tract('{{ record.place_entry.name }}')">{{ record.place_entry.name }}</a></td>
+                                        <td class="cen text-center" >
+                                            {% if record.app_user_link %}
+                                                <a href="{% url 'staff_detail' request.session.company_manage_id_sel_now record.app_user.pub_id %}">{{ record.app_user.auth_user.first_name }}</a>
+                                            {% else %}
+                                                {{ record.app_user.auth_user.first_name }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                            <div class="center">
+                                <ul class="pagination" style="float: left;">
+                                    <li class="page-item {% if not place_entry_record_list.has_previous %}disabled{% endif %}">
+                                        {% if place_entry_record_list.has_previous %}
+                                            <a href="{{ request.get_full_path|change_page2:place_entry_record_list.previous_page_number }}" aria-label="Previous">上頁 </a>
+                                        {% else %}
+                                            <a href="#" aria-label="Previous">上頁 </a>
+                                        {% endif %}
+                                    </li>
+                                    {% for num in page_range2 %}
+                                        <li class="page-item {% if num == place_entry_record_list.number %}active{% endif %}"><a href="{{ request.get_full_path|change_page2:num }}">{{ num }}</a></li>
+                                    {% endfor %}
+                                    <li class="page-item {% if not place_entry_record_list.has_next %}disabled{% endif %}">
+                                        {% if place_entry_record_list.has_next %}
+                                            <a href="{{ request.get_full_path|change_page2:place_entry_record_list.next_page_number }}" aria-label="Next">下頁 </a>
+                                        {% else %}
+                                            <a href="#" aria-label="Next">下頁 </a>
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            {% endif %}
+            <div id="danger" class="tab-pane fade">
+                <div class="row top5">
+                    <div class="col-md-12 col-sm-12 col-xs-12">
+                        <table class="table table-striped table-bordered" >
+                            <tr>
+                                <th class="text-center cen_blue">日期</th>
+                                <th class="text-center cen_blue">危險使用者</th>
+                                <th class="text-center cen_blue">狀態</th>
+                                <th class="text-center cen_blue">標記人員</th>
+                            </tr>
+                            {% for record in danger_record_list %}
+                                <tr>
+                                    <td class="cen text-center">{{ record.created | date:"Y-m-d H:i:s" }}</td>
+                                    <td class="cen text-center" >
+                                        {% if record.approach_record and record.app_user_link %}
+                                            <a href="{% url 'user_detail' record.app_user.pub_id %}">{{ record.app_user.auth_user.first_name }} </a>
+                                        {% else %}
+                                            {{ record.app_user.auth_user.first_name }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="cen text-center" >{{ record.get_health_code_display }}</td>
+                                    <td class="cen text-center" >
+{#                                        <a href="{% url 'user_detail' record.scan_user_id %}">{{ record.scan_user }} </a>#}
+                                        {% if record.approach_record and record.scan_user_link %}
+                                            <a href="{% url 'user_detail' record.approach_record.scan_user.pub_id %}">{{ record.approach_record.scan_user.auth_user.first_name }} </a>
+                                        {% else %}
+
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                        <div class="center">
+                            <ul class="pagination" style="float: left;">
+                                <li class="page-item {% if not danger_record_list.has_previous %}disabled{% endif %}">
+                                    {% if danger_record_list.has_previous %}
+                                        <a href="{{ request.get_full_path|change_page3:danger_record_list.previous_page_number }}" aria-label="Previous">上頁 </a>
+                                    {% else %}
+                                        <a href="#" aria-label="Previous">上頁 </a>
+                                    {% endif %}
+                                </li>
+                                {% for num in page_range3 %}
+                                    <li class="page-item {% if num == danger_record_list.number %}active{% endif %}"><a href="{{ request.get_full_path|change_page3:num }}">{{ num }}</a></li>
+                                {% endfor %}
+                                <li class="page-item {% if not approach_record_list.has_next %}disabled{% endif %}">
+                                    {% if danger_record_list.has_next %}
+                                        <a href="{{ request.get_full_path|change_page3:danger_record_list.next_page_number }}" aria-label="Next">下頁 </a>
+                                    {% else %}
+                                        <a href="#" aria-label="Next">下頁 </a>
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="qr_img_modal" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label class="modal-title text-template" id="exampleModalLabel">新增人員掃描QR Code</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col text-center">
+                            <img id="qr_image" height="40%" width="80%" alt="">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="send_notify" tabindex="-1" role="dialog" aria-labelledby="ModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <label class="modal-title text-template" id="exampleModalLabel">小提示</label>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="col text-center">
+                            <p id="msg"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(window).on('load', function () {
+             /* chart js charts   */
+            var ctx, gradient2, horizonalLinePlugin, chat_config;
+            if ('{{ request.session.manage_role }}' == 'COMPANY'){
+                ctx = document.getElementById("linechart").getContext('2d');
+
+                gradient2 = ctx.createLinearGradient(0, 0, 0, 200);
+                gradient2.addColorStop(0, 'rgba(151, 94, 251, 0.40)');
+                gradient2.addColorStop(1, 'rgba(91, 168, 255, 0.40)');
+
+                chat_config = {
+                    type: 'line',
+                    data: {
+                        labels: {{ date_list|safe }},
+                        datasets: [{
+                            label: '員工接觸紀錄',
+                            backgroundColor: gradient2,
+                            data: {{ approach_count|safe }},
+                            borderColor: "rgba(151, 94, 251, 0.40)",
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderWidth: 3,
+                            borderDashOffset: 1,
+                            borderJoinStyle: 'bevel',
+                            pointBorderColor: "#ffffff",
+                            pointBackgroundColor: "#7b65f4",
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 12,
+                            pointHoverBackgroundColor: "#7b65f4",
+                            pointHoverBorderColor: "#ffffff",
+                            pointHoverBorderWidth: 0,
+                            pointRadius: 8,
+                            pointHitRadius: 8,
+                        },{
+                            label: '公司地點被掃描紀錄',
+                            backgroundColor: gradient2,
+                            data: {{ place_count|safe }},
+                            borderColor: "rgba(4,61,251,0.4)",
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderWidth: 3,
+                            borderDashOffset: 1,
+                            borderJoinStyle: 'bevel',
+                            pointBorderColor: "#ffffff",
+                            pointBackgroundColor: "#6896f4",
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 12,
+                            pointHoverBackgroundColor: "#6896f4",
+                            pointHoverBorderColor: "#ffffff",
+                            pointHoverBorderWidth: 0,
+                            pointRadius: 8,
+                            pointHitRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        title: {
+                            display: false,
+                            text: 'Chart.js  Line Chart',
+                        },
+                        legend: {
+                            display: false,
+                            labels: {
+                                fontColor: "#888888"
+                            }
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true,
+                                ticks: {
+                                    fontColor: "#888888",
+                                    beginAtZero: true,
+                                    min:0,
+                                    max:parseInt('{{ max_num }}'),
+                                    stepSize:5
+                                },
+                                gridLines: {
+                                    {#color: "rgb(180,180,180)",#}
+                                    {#zeroLineColor: "rgb(180,180,180)"#}
+                                }
+                            }],
+                            xAxes: [{
+                                display: true,
+                                ticks: {
+                                    fontColor: "#888888"
+                                },
+                                gridLines: {
+                                    {#color: "rgba(160,160,160,0.1)",#}
+                                    {#zeroLineColor: "rgba(160,160,160,0.15)"#}
+                                }
+                            }]
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 0,
+                                bottom: 0
+                            }
+                        },
+
+                    }
+                };
+                horizonalLinePlugin = {
+                    afterDraw: function (chartInstance) {
+                        var yScale = chartInstance.scales["y-axis-0"];
+                        var canvas = chartInstance.chart;
+                        var ctx = canvas.ctx;
+                        var index;
+                        var line;
+                        var style;
+
+                        if (chartInstance.options.horizontalLine) {
+                            for (index = 0; index < chartInstance.options.horizontalLine.length; index++) {
+                                line = chartInstance.options.horizontalLine[index];
+
+                                if (!line.style) {
+                                    style = "rgba(169,169,169, .6)";
+                                } else {
+                                    style = line.style;
+                                }
+
+                                if (line.y) {
+                                    yValue = yScale.getPixelForValue(line.y);
+                                } else {
+                                    yValue = 0;
+                                }
+
+                                ctx.lineWidth = 3;
+
+                                if (yValue) {
+                                    ctx.beginPath();
+                                    ctx.moveTo(0, yValue);
+                                    ctx.lineTo(canvas.width, yValue);
+                                    ctx.strokeStyle = style;
+                                    ctx.stroke();
+                                }
+
+                                if (line.text) {
+                                    ctx.fillStyle = style;
+                                    ctx.fillText(line.text, 0, yValue + ctx.lineWidth);
+                                }
+                            }
+                            {#return;#}
+                        }
+                    }
+                };
+            }else{
+                ctx = document.getElementById("linechart").getContext('2d');
+
+                gradient2 = ctx.createLinearGradient(0, 0, 0, 200);
+                gradient2.addColorStop(0, 'rgba(151, 94, 251, 0.40)');
+
+                chat_config = {
+                    type: 'line',
+                    data: {
+                        labels: {{ date_list|safe }},
+                        datasets: [{
+                            label: '員工接觸紀錄',
+                            backgroundColor: gradient2,
+                            data: {{ approach_count|safe }},
+                            borderColor: "rgba(151, 94, 251, 0.40)",
+                            borderCapStyle: 'butt',
+                            borderDash: [],
+                            borderWidth: 3,
+                            borderDashOffset: 1,
+                            borderJoinStyle: 'bevel',
+                            pointBorderColor: "#ffffff",
+                            pointBackgroundColor: "#7b65f4",
+                            pointBorderWidth: 1,
+                            pointHoverRadius: 12,
+                            pointHoverBackgroundColor: "#7b65f4",
+                            pointHoverBorderColor: "#ffffff",
+                            pointHoverBorderWidth: 0,
+                            pointRadius: 8,
+                            pointHitRadius: 8,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        title: {
+                            display: false,
+                            text: 'Chart.js  Line Chart',
+                        },
+                        legend: {
+                            display: false,
+                            labels: {
+                                fontColor: "#888888"
+                            }
+                        },
+                        scales: {
+                            yAxes: [{
+                                display: true,
+                                ticks: {
+                                    fontColor: "#888888",
+                                    beginAtZero: true,
+                                    min:0,
+                                    max:parseInt('{{ max_num }}'),
+                                    stepSize:5
+                                },
+                                gridLines: {
+                                    {#color: "rgb(180,180,180)",#}
+                                    {#zeroLineColor: "rgb(180,180,180)"#}
+                                }
+                            }],
+                            xAxes: [{
+                                display: true,
+                                ticks: {
+                                    fontColor: "#888888"
+                                },
+                                gridLines: {
+                                    {#color: "rgba(160,160,160,0.1)",#}
+                                    {#zeroLineColor: "rgba(160,160,160,0.15)"#}
+                                }
+                            }]
+                        },
+                        layout: {
+                            padding: {
+                                left: 10,
+                                right: 10,
+                                top: 0,
+                                bottom: 0
+                            }
+                        },
+
+                    }
+                };
+                horizonalLinePlugin = {
+                    afterDraw: function (chartInstance) {
+                        var yScale = chartInstance.scales["y-axis-0"];
+                        var canvas = chartInstance.chart;
+                        var ctx = canvas.ctx;
+                        var index;
+                        var line;
+                        var style;
+
+                        if (chartInstance.options.horizontalLine) {
+                            for (index = 0; index < chartInstance.options.horizontalLine.length; index++) {
+                                line = chartInstance.options.horizontalLine[index];
+
+                                if (!line.style) {
+                                    style = "rgba(169,169,169, .6)";
+                                } else {
+                                    style = line.style;
+                                }
+
+                                if (line.y) {
+                                    yValue = yScale.getPixelForValue(line.y);
+                                } else {
+                                    yValue = 0;
+                                }
+
+                                ctx.lineWidth = 3;
+
+                                if (yValue) {
+                                    ctx.beginPath();
+                                    ctx.moveTo(0, yValue);
+                                    ctx.lineTo(canvas.width, yValue);
+                                    ctx.strokeStyle = style;
+                                    ctx.stroke();
+                                }
+
+                                if (line.text) {
+                                    ctx.fillStyle = style;
+                                    ctx.fillText(line.text, 0, yValue + ctx.lineWidth);
+                                }
+                            }
+                            {#return;#}
+                        }
+                    }
+                };
+                {#Chart.pluginService.register(horizonalLinePlugin);#}
+                {#var myChart = new Chart(ctx, chat_config);#}
+            }
+            Chart.pluginService.register(horizonalLinePlugin);
+            var myChart = new Chart(ctx, chat_config);
+
+        });
+        function get_qr_img(place_id){
+            var qr_url = "{% url 'qr_code' 'black' 'QRDATA' %}";
+            qr_url = qr_url.replace('QRDATA', 'ADDORG__' + place_id);
+            {#alert(qr_url);#}
+            document.getElementById('qr_image').setAttribute("src", qr_url);
+            {#document.getElementById('qr_image').setAttribute("alt", 'PLACE__' + place_id);#}
+        }
+        function place_tract(place_name) {
+            var d = new Date();
+            var today = d.toLocaleDateString();
+            today = today.replace('/', '-').replace('/', '-');
+            var api_url = "{% url 'company_place_tract' 'COMPANY_ID' %}";
+            api_url = api_url.replace('COMPANY_ID', '{{ request.session.company_manage_id_sel_now }}');
+            api_url = api_url + '?place_name=' + place_name +  '&created_at_min=' + today;
+            {#alert(api_url);#}
+            location.href = api_url;
+        }
+        $(document).ready(function(){
+            if ('{{ nav_no_reset }}' != 1){
+                localStorage.removeItem('activeTab')
+            }
+            $('a[data-toggle="tab"]').on('show.bs.tab', function(e) {
+                localStorage.setItem('activeTab', $(e.target).attr('href'));
+            });
+            var activeTab = localStorage.getItem('activeTab');
+            if(activeTab){
+                $('#myTab a[href="' + activeTab + '"]').tab('show');
+            }
+            if ($('#return_msg').val() != ''){
+                $("#msg").text($('#return_msg').val() );
+                $("#send_notify").modal();
+            }
+        });
+    </script>
+{% endblock %}

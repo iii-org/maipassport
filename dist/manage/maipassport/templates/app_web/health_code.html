@@ -1,0 +1,60 @@
+{% extends 'app_web/base.html' %}
+{% load static %}
+{% load qr_tags %}
+{% block content %}
+{#<div class="container">#}
+{#    <div class="row">#}
+{#        <div class="col-md-12 col-sm-12 col-xs-12 top20 bottom20" style="font-size:25px; font-weight:bold;">登入<img src="{% static 'images/LINE.png' %}" class="img-responsive top5" alt="" /> </div>#}
+{#    </div>#}
+</div>
+    <div class="container">
+        <div class="row bottom40">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div style="background-color:#f4f4f4;font-size: 15px;padding:45px 0 15px;">
+                    <div class="col-lg-offset-1 col-lg-10 col-xs-12 text-center">
+                        <div class="text-center" style="height: 50px;"><h4>健康通行人員防疫管理平台</h4></div>
+                        <div><img src="{% url 'qr_code' color_type qr_data %}" alt="test"></div>
+                        <div style="height: 30px;"></div>
+                        {% if color_type == '0' %}
+                            <div>
+                                <label class="text-center">狀態：&nbsp;</label>
+                                <label style="color: green;">{{ health_detail }}</label>
+                            </div>
+                            <div><label class="text-center">最後更新時間： {{ last_time_update }}</label></div>
+                        {% elif color_type == '1' %}
+                            <div>
+                                <label class="text-center">狀態：&nbsp;</label>
+                                <label style="color: #ffa866;">{{ health_detail }}</label>
+                            </div>
+                            <div><label class="text-center">最後更新時間： {{ last_time_update }}</label></div>
+                            <div><label class="text-center">請至櫃檯或警衛進行體溫檢測</label></div>
+                        {% elif color_type == '2' %}
+                            <div>
+                                <label class="text-center">狀態：&nbsp;</label>
+                                <label style="color: red;">{{ health_detail }}</label>
+                            </div>
+                            <div><label class="text-center">最後更新時間： {{ last_time_update }}</label></div>
+                            <div><label class="text-center">隔離 / 危險人士</label></div>
+                        {% elif color_type == '3' %}
+                            <div>
+                                <label class="text-center">狀態：&nbsp;</label>
+                                <label style="color: red;">{{ health_detail }}</label>
+                            </div>
+                            <div><label class="text-center">最後更新時間： {{ last_time_update }}</label></div>
+                            <div><label class="text-center">{{ danger_reason }}</label></div>
+                        {% else %}
+                            <div>
+                                <label class="text-center">狀態：&nbsp;</label>
+                                <label style="color: black;">{{ health_detail }}</label>
+                            </div>
+                            <div><label class="text-center">最後更新時間： {{ last_time_update }}</label></div>
+                            <div><label class="text-center">請填寫健康資料表</label></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+{% endblock %}

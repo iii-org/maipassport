@@ -1,0 +1,956 @@
+{% extends 'app_web_n/base.html' %}
+{% load i18n %}
+{% load static %}
+{% block stylesheet %}
+    <style>
+    </style>
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="card bg-template shadow mt-4 h-190">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-auto" id="user_img_div">
+                        <figure class="avatar avatar-60">
+                            {#                                <img src="data:image/jpeg;base64,{{ request.user_img }}" alt="" >#}
+                            <img src="{% static 'app_web/img/avatar_def.png' %}" alt="" id="user_img" >
+                        </figure>
+                    </div>
+{#                    {% if request.user_img %}#}
+{#                        <div class="col-auto crop">#}
+{#                            <figure class="avatar avatar-60">#}
+{#                                <img src="data:image/jpeg;base64,{{ request.user_img }}" alt="" >#}
+{#                            </figure>#}
+{#                        </div>#}
+{#                    {% else %}#}
+{#                        <div class="col-auto">#}
+{#                            <figure class="avatar avatar-60">#}
+{#                                <img src="{% static 'app_web/img/avatar_def.png' %}" height="auto" width="auto"  id="user_img">#}
+{#                            </figure>#}
+{#                        </div>#}
+{#                    {% endif %}#}
+                    <div class="col pl-0 align-self-center">
+                        <h5 class="mb-1">{{ request.user.first_name }}</h5>
+                        <p class="text-mute small">{{ request.company.name }}</p>
+                    </div>
+                    <div class="col-auto">
+                        <button onclick="location.reload()" class="btn btn-rounded-54 no-shadow" style="border-width: 1px; border-color: white; color:white; "><i class="material-icons">cached</i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container" style="margin-top: 130px;">
+        <div class="card bg-template shadow mt-4 h-190">
+            <div class="card-body"></div><!--保留body 不然footer會跑掉-->
+            <div class="card-footer">
+                <div class="row">
+                    <div class="col text-center">
+                        <a onclick="qrCamera()" class="btn no-shadow" style="border-width: 1px; color:white; "><i class="material-icons">flip</i>&nbsp; {% trans 'Scan'%}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container " style="margin-top: -420px;">
+        <div class="card mb-4 shadow">
+            <div class="card-body border-bottom">
+                <div class="row">
+                    <div class="col text-center">
+                        <!-- 放QRCode -->
+{#                        <img src="{% url 'qr_code' 5 'PLACE__0M6SicJe8lFzDz73Lfon' %}" alt="test">#}
+                        <img src="{% url 'qr_code' color_type qr_data %}" alt="" style="margin-left: 25px;">
+                    </div>
+                    {#                        <div class="col-xs-5" style="padding-top: 15px;">#}
+                </div>
+
+            </div>
+            <div class="card-footer bg-none">
+                <div class="row">
+                    <div style="padding-left: 10px;">
+                        {% if color_type == '0' %}
+                            <div>
+                                <label>{% trans 'Status' %}：&nbsp;</label>
+                                <label style="color: green;">{{ health_detail }}</label>
+                            </div>
+                            <div><label>{% trans 'Last Update Time' %}： {{ last_time_update }}</label></div>
+                        {% elif color_type == '1' %}
+                            <div>
+                                <label >{% trans 'Status' %}：&nbsp;</label>
+                                <label style="color: #ffa866;">{% trans 'The declaration is completed and the temperature will be retested' %}</label>
+                            </div>
+                            <div><label >{% trans 'Last Update Time' %}： {{ last_time_update }}</label></div>
+                            <div><label>{% trans 'Please go to the counter or guard for temperature check' %}</label></div>
+                        {% elif color_type == '2' %}
+                            <div class="text-left">
+                                <label>{% trans 'Status' %}：&nbsp;</label>
+                                <label style="color: red;">{{ health_detail }}</label>
+                            </div>
+                            <div><label>{% trans 'Last Update Time' %}： {{ last_time_update }}</label></div>
+                            <div><label>{% trans 'Quarantine' %}&nbsp;/&nbsp;{% trans 'dangerous' %}{% trans 'person' %}</label></div>
+                        {% elif color_type == '3' %}
+                            <div>
+                                <label>{% trans 'Status' %}：&nbsp;</label>
+                                <label style="color: red;">{{ health_detail }}</label>
+                            </div>
+                            <div><label>{% trans 'Last Update Time' %}： {{ last_time_update }}</label></div>
+                            <div><label>{{ danger_reason }}</label></div>
+                        {% else %}
+                            <div>
+                                <label>{% trans 'Status' %}：&nbsp;</label>
+                                <label >{{ health_detail }}</label>
+                            </div>
+                            <div><label>{% trans 'Last Update Time' %}： {{ last_time_update }}</label></div>
+                            <div><label>{% trans 'Please fill in the health declaration form' %}</label></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="height: 50px"></div>
+    <input type="hidden" id="send_msg" value="{{ send_msg }}">
+    <input type="hidden" id="send_user" value="{{ send_user }}">
+    <div class="container">
+        <div class="row">
+            <div class="swiper-container icon-slide mb-3">
+                <div class="swiper-wrapper">
+                    <!--
+                        錢包
+                    <a href="" class="swiper-slide text-center" data-toggle="modal" data-target="#paymodal">
+                        <div class="avatar avatar-60 no-shadow border-0">
+                            <div class="overlay bg-template"></div>
+                            <i class="material-icons text-template">local_atm</i>
+                        </div>
+                        <p class="small mt-2">Pay</p>
+                    </a>
+                    -->
+                    <a class="swiper-slide text-center" href="{% url 'health' request.app_user.pub_id request.app_user.api_token %}">
+                        <div class="avatar avatar-60 no-shadow border-0">
+                            <div class="overlay bg-template"></div>
+                            <i class="material-icons ">assignment</i>
+{#                            <i class="material-icons text-template">assignment</i>#}
+                        </div>
+                        <p class="small mt-2">{% trans 'Survey' %}</p>
+                    </a>
+
+{#                    <a class="swiper-slide text-center" onclick="qrCamera()" >#}
+{#                    <a href="{% url 'scan_test' request.app_user.pub_id request.app_user.api_token %}" class="swiper-slide text-center">#}
+{##}
+{#                        <div class="avatar avatar-60 no-shadow border-0">#}
+{#                            <div class="overlay bg-template"></div>#}
+{#                            <i class="material-icons ">camera</i>#}
+{#                        </div>#}
+{#                        <p class="small mt-2">{% trans 'Scan' %}</p>#}
+{#                    </a>#}
+
+                    <a class="swiper-slide text-center" href="{% url 'chick_in_record' request.app_user.pub_id request.app_user.api_token %}">
+                        <div class="avatar avatar-60 no-shadow border-0">
+                            <div class="overlay bg-template"></div>
+                            <i class="material-icons">my_location</i>
+                        </div>
+                        <p class="small mt-2">{% trans 'Check In' %}</p>
+                    </a>
+
+                    <a class="swiper-slide text-center" href="{% url 'user_profile' request.app_user.pub_id request.app_user.api_token %}">
+{#                    <a href="{% url 'user_profile' request.app_user.pub_id request.app_user.api_token %}" class="swiper-slide text-center" data-toggle="modal" data-target="#bookmodal">    #}
+                        <div class="avatar avatar-60 no-shadow border-0">
+                            <div class="overlay bg-template"></div>
+                            <i class="material-icons">settings</i>
+                        </div>
+                        <p class="small mt-2">{% trans 'Settings' %}</p>
+                    </a>
+{#  Alan_TODO: health-check not complete remove entry for production environment                  #}
+{#                    <a class="swiper-slide text_center" href="{% url 'health_check' request.app_user.pub_id request.app_user.api_token %}">#}
+{#                        <div class="avatar avatar-60 no-shadow border-0">#}
+{#                            <div class="overlay bg-template"></div>#}
+{#                            <i class="material-icons">checklist</i>#}
+{#                        </div>#}
+{#                        <p class="small mt-2">{% trans 'Health Check' %}</p>#}
+{#                    </a>#}
+
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+{#        <div class="row mb-2">#}
+{#            <div class="container px-0">#}
+{#                <!-- Swiper -->#}
+{#                <div class="swiper-container two-slide">#}
+{#                    <div class="swiper-wrapper">#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Home Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Cash Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Car Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Business Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Edu Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow border-0">#}
+{#                                <div class="card-body">#}
+{#                                    <div class="row no-gutters h-100">#}
+{#                                        <div class="col">#}
+{#                                            <p>$ 1548.00<br><small class="text-secondary">Home Loan EMI</small></p>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="swiper-pagination"></div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+        <div id="banner_bar">
+            <div class="card shadow mt-2 h-100" >
+                <div class="card-body" style="background-image: url({% static 'app_web/img/mic_banner_backend.png' %});background-size:100% 100%; border-radius: 12px;">
+                    <a href="https://mic.iii.org.tw/AISP/NCP.aspx" target="_blank" style="text-decoration:none;">
+                        <div class=" border-0 ">
+                            <div class="row">
+                                <div class="col-auto pr-0">
+{#                                    <img src="{% static 'app_web/img/logo-1_white.png' %}" height="70" width="70" alt="" class="mw-100">#}
+                                    <img src="{% static 'app_web/img/mic_LOGO.png' %}" height="40" width="90" alt="" class="mw-100">
+                                </div>
+                                <div class="col align-self-center ">
+                                    <h5 class="mb-2 font-weight-normal text-right text-white">{% trans 'About Covid-19' %}</h5>
+                                    <p class="text-mute text-right text-white">{% trans 'MIC Reports and Videos' %}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="card bg-template shadow mt-2 h-100">
+                <div class="card-body">
+                    <a href="https://www.cdc.gov.tw/" target="_blank" style="text-decoration:none;">
+                        <div class=" border-0 bg-template">
+                            <div class="row">
+                                <div class="col pr-0 align-self-center">
+                                    <h5 class="mb-2 font-weight-normal">{% trans 'Taiwan Centers for Disease Control' %}</h5>
+                                    <p class="text-mute">{% trans 'Provide information on relevant medical records in Taiwan and around the world' %}</p>
+                                </div>
+                                <div class="col-auto">
+                                    <img src="{% static 'app_web/img/roc_center.png' %}" height="70" width="70" alt="" class="mw-100">
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+{#        <div class="row" id="banner_bar">#}
+{#            <div class="container px-0">#}
+{#                <!-- Swiper -->#}
+{#                <div class="swiper-container offer-slide">#}
+{#                    <div class="swiper-wrapper">#}
+{#                        <div class="swiper-slide">#}
+{#                            <a href="https://mic.iii.org.tw/AISP/NCP.aspx" target="_blank">#}
+{#                                <div class="card shadow border-0 bg-template">#}
+{#                                    <div class="card-body">#}
+{#                                        <div class="row">#}
+{#                                            <div class="col-auto pr-0">#}
+{#                                                <img src="{% static 'app_web/img/logo-1_white.png' %}" height="70" width="70" alt="" class="mw-100">#}
+{#                                            </div>#}
+{#                                            <div class="col align-self-center">#}
+{#                                                <h5 class="mb-2 font-weight-normal">新型冠狀病毒專區</h5>#}
+{#                                                <p class="text-mute">資策會產業情報所提供報告評析及影音分享</p>#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </a>#}
+{#                        </div>#}
+{##}
+{#                        <div class="swiper-slide">#}
+{#                            <a href="https://www.cdc.gov.tw/" target="_blank">#}
+{#                                <div class="card shadow border-0 bg-template">#}
+{#                                    <div class="card-body">#}
+{#                                        <div class="row">#}
+{#                                            <div class="col pr-0 align-self-center">#}
+{#                                                <h5 class="mb-2 font-weight-normal">衛福部疾病管制署</h5>#}
+{#                                                <p class="text-mute">提供台灣及全球相關病歷數資訊</p>#}
+{#                                            </div>#}
+{#                                            <div class="col-auto">#}
+{#                                                <img src="{% static 'app_web/img/roc_center.png' %}" height="70" width="70" alt="" class="mw-100">#}
+{#                                            </div>#}
+{#                                        </div>#}
+{#                                    </div>#}
+{#                                </div>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="container">#}
+{#            <h6 class="subtitle">Upcoming Payments <a href="allpayment.html" class="float-right small">View All</a></h6>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row">#}
+{#                        <div class="col">#}
+{#                            <h5 class="font-weight-normal mb-1">$ 1548.00 </h5>#}
+{#                            <p class="text-mute small text-secondary mb-2">20d to pay electricity bill</p>#}
+{#                            <div class="progress h-4">#}
+{#                                <div class="progress-bar bg-success" role="progressbar" style="width:35%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-auto pl-0">#}
+{#                            <button class="avatar avatar-50 no-shadow border-0 bg-template">#}
+{#                                <i class="material-icons">local_atm</i>#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row">#}
+{#                        <div class="col">#}
+{#                            <h5 class="font-weight-normal mb-1">$ 106.00 <span class="badge badge-danger small vm text-white">Prior</span></h5>#}
+{#                            <p class="text-mute small text-secondary mb-2">33 days to pay gas bill</p>#}
+{#                            <div class="progress h-4">#}
+{#                                <div class="progress-bar bg-danger" role="progressbar" style="width: 65%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-auto pl-0">#}
+{#                            <button class="avatar avatar-50 no-shadow border-0 bg-template">#}
+{#                                <i class="material-icons">local_atm</i>#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="container">#}
+{#            <h6 class="subtitle">Recent Messages</h6>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row align-items-center">#}
+{#                        <div class="col-auto pr-0">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <img src="img/user1.png" alt="">#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col">#}
+{#                            <h6 class="font-weight-normal mb-1">Mrs. Magon Johnson </h6>#}
+{#                            <p class="text-mute small text-secondary">"Thank you for your purchase with our shop and making online payment."</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="card-footer border-top bg-none">#}
+{#                    <div class="input-group">#}
+{#                        <input type="text" class="form-control" placeholder="Recipient's username" aria-label="Quick reply" aria-describedby="button-addon4">#}
+{#                        <div class="input-group-append">#}
+{#                            <button class="btn btn-default btn-rounded-36 shadow-sm" type="button" id="button-addon4"><i class="material-icons md-18">send</i></button>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row align-items-center">#}
+{#                        <div class="col-auto pr-0">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <img src="img/user2.png" alt="">#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col">#}
+{#                            <h6 class="font-weight-normal mb-1">Ms. Shivani Dilux</h6>#}
+{#                            <p class="text-mute small text-secondary">"Thank you for your purchase with our shop and making online payment."</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="container">#}
+{#            <h6 class="subtitle">Loan Status </h6>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row align-items-center">#}
+{#                        <div class="col-auto pr-0">#}
+{#                            <div class="avatar avatar-50 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm text-template">local_atm</i>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-auto align-self-center">#}
+{#                            <h6 class="font-weight-normal mb-1">EMI</h6>#}
+{#                            <p class="text-mute small text-secondary">Home Loan</p>#}
+{#                        </div>#}
+{#                        <div class="col-auto align-self-center border-left">#}
+{#                            <h6 class="font-weight-normal mb-1">$ 1548.00</h6>#}
+{#                            <p class="text-mute small text-secondary">Due: 15-12-2019</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="card shadow border-0 mb-3">#}
+{#                <div class="card-body">#}
+{#                    <div class="row align-items-center">#}
+{#                        <div class="col-auto pr-0">#}
+{#                            <div class="avatar avatar-50 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm text-template">local_atm</i>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="col-auto align-self-center">#}
+{#                            <h6 class="font-weight-normal mb-1">EMI</h6>#}
+{#                            <p class="text-mute small text-secondary">Car Loan</p>#}
+{#                        </div>#}
+{#                        <div class="col-auto align-self-center border-left">#}
+{#                            <h6 class="font-weight-normal mb-1">$ 658.00</h6>#}
+{#                            <p class="text-mute small text-secondary">Due: 18-12-2019</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="container">#}
+{#            <h6 class="subtitle">News Updates</h6>#}
+{#            <div class="row">-->#}
+{#                <!-- Swiper -->#}
+{#                <div class="swiper-container news-slide">#}
+{#                    <div class="swiper-wrapper">#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product2.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product3.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product2.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product3.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product2.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                        <div class="swiper-slide">#}
+{#                            <div class="card shadow-sm border-0 bg-dark text-white">#}
+{#                                <figure class="background">#}
+{#                                    <img src="img/product3.jpg" alt="">#}
+{#                                </figure>#}
+{#                                <div class="card-body">#}
+{#                                    <a href="" class="btn btn-default btn-rounded-36 shadow-sm float-bottom-right"><i class="material-icons md-18">arrow_forward</i></a>#}
+{#                                    <h5 class="small">Multipurpose Juice allows you to grow faster</h5>#}
+{#                                    <p class="text-mute small">By Anand Mangal</p>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <!-- Add Pagination -->#}
+{#                    <div class="swiper-pagination"></div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <div class="container">#}
+{#            <div class="row">#}
+{#                <div class="col text-center">#}
+{#                    <h5 class="subtitle mb-1">Most Exciting Feature</h5>#}
+{#                    <p class="text-secondary">Take a look at our services</p>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="row text-center mt-4">#}
+{#                <div class="col-6 col-md-3">#}
+{#                    <div class="card shadow border-0 mb-3">#}
+{#                        <div class="card-body">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm md-36 text-template">card_giftcard</i>#}
+{#                            </div>#}
+{#                            <h3 class="mt-3 mb-0 font-weight-normal">2546</h3>#}
+{#                            <p class="text-secondary text-mute small">Gift it out</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-6 col-md-3">#}
+{#                    <div class="card shadow border-0 mb-3">#}
+{#                        <div class="card-body">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm md-36 text-template">subscriptions</i>#}
+{#                            </div>#}
+{#                            <h3 class="mt-3 mb-0 font-weight-normal">635</h3>#}
+{#                            <p class="text-secondary text-mute small">Monthly Billed</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-6 col-md-3">#}
+{#                    <div class="card shadow border-0 mb-3">#}
+{#                        <div class="card-body">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm md-36 text-template">local_florist</i>#}
+{#                            </div>#}
+{#                            <h3 class="mt-3 mb-0 font-weight-normal">1542</h3>#}
+{#                            <p class="text-secondary text-mute small">Eco environment</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="col-6 col-md-3">#}
+{#                    <div class="card shadow border-0 mb-3">#}
+{#                        <div class="card-body">#}
+{#                            <div class="avatar avatar-60 no-shadow border-0">#}
+{#                                <div class="overlay bg-template"></div>#}
+{#                                <i class="material-icons vm md-36 text-template">location_city</i>#}
+{#                            </div>#}
+{#                            <h3 class="mt-3 mb-0 font-weight-normal">154</h3>#}
+{#                            <p class="text-secondary text-mute small">Four Offices</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <!-- footer-->#}
+{#        <div class="footer">#}
+{#            <div class="no-gutters">#}
+{#                <div class="col-auto mx-auto">#}
+{#                    <div class="row no-gutters justify-content-center">#}
+{#                        <div class="col-auto">#}
+{#                            <a href="index.html" class="btn btn-link-default active">#}
+{#                                <i class="material-icons">home</i>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                        <div class="col-auto">#}
+{#                            <a href="statistics.html" class="btn btn-link-default">#}
+{#                                <i class="material-icons">insert_chart_outline</i>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                        <div class="col-auto">#}
+{#                            <a href="wallet.html" class="btn btn-link-default">#}
+{#                                <i class="material-icons">account_balance_wallet</i>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                        <div class="col-auto">#}
+{#                            <a href="transactions.html" class="btn btn-link-default">#}
+{#                                <i class="material-icons">widgets</i>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                        <div class="col-auto">#}
+{#                            <a href="profile.html" class="btn btn-link-default">#}
+{#                                <i class="material-icons">account_circle</i>#}
+{#                            </a>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#        <!-- footer ends-->#}
+
+    </div>
+
+    <!-- notification -->
+{#    <div class="notification bg-white shadow-sm border-primary">#}
+{#        <div class="row">#}
+{#            <div class="col-auto align-self-center pr-0">#}
+{#                <i class="material-icons text-primary md-36">fullscreen</i>#}
+{#            </div>#}
+{#            <div class="col">#}
+{#                <h6>Viewing in Phone?</h6>#}
+{#                <p class="mb-0 text-secondary">Double tap to enter into fullscreen mode for each page.</p>#}
+{#            </div>#}
+{#            <div class="col-auto align-self-center pl-0">#}
+{#                <button class="btn btn-link closenotification"><i class="material-icons text-secondary text-mute md-18 ">close</i></button>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+    <!-- notification ends -->
+    <!-- Modal -->
+	<!--
+    <div class="modal fade" id="addmoney" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center pt-0">
+                    <img src="img/infomarmation-graphics2.png" alt="logo" class="logo-small">
+                    <div class="form-group mt-4">
+                        <input type="text" class="form-control form-control-lg text-center" placeholder="Enter amount" required="" autofocus="">
+                    </div>
+                    <p class="text-mute">You will be redirected to payment gatway to procceed further. Enter amount in USD.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default btn-lg btn-rounded shadow btn-block" class="close" data-dismiss="modal">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	-->
+
+    <!-- Modal -->
+	<!--
+    <div class="modal fade" id="sendmoney" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5>Send Money</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="form-group mt-4">
+                        <select class="form-control form-control-lg text-center">
+                            <option>Mrs. Magon Johnson</option>
+                            <option selected>Ms. Shivani Dilux</option>
+                        </select>
+                    </div>
+
+                    <div class="card shadow border-0 mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto pr-0">
+                                    <div class="avatar avatar-60 no-shadow border-0">
+                                        <img src="img/user2.png" alt="">
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h6 class="font-weight-normal mb-1">Ms. Shivani Dilux</h6>
+                                    <p class="text-mute small text-secondary">London, UK</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group text-center mt-4">
+                        <input type="text" class="form-control form-control-lg text-center" placeholder="Enter amount" required="" autofocus="">
+                    </div>
+                    <p class="text-mute text-center">You will be redirected to payment gatway to procceed further. Enter amount in USD.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default btn-lg btn-rounded shadow btn-block" class="close" data-dismiss="modal">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	-->
+
+    <!-- Modal -->
+	<!--
+    <div class="modal fade" id="paymodal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5>Pay</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline1" name="customRadioInline1" class="custom-control-input">
+                        <label class="custom-control-label" for="customRadioInline1">To Bill</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline2" name="customRadioInline1" class="custom-control-input" checked>
+                        <label class="custom-control-label" for="customRadioInline2">To Person</label>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <select class="form-control text-center">
+                            <option>Mrs. Magon Johnson</option>
+                            <option selected>Ms. Shivani Dilux</option>
+                        </select>
+                    </div>
+
+                    <div class="card shadow border-0 mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto pr-0">
+                                    <div class="avatar avatar-60 no-shadow border-0">
+                                        <img src="img/user2.png" alt="">
+                                    </div>
+                                </div>
+                                <div class="col align-self-center">
+                                    <h6 class="font-weight-normal mb-1">Ms. Shivani Dilux</h6>
+                                    <p class="text-mute small text-secondary">London, UK</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group text-center mt-4">
+                        <input type="text" class="form-control form-control-lg text-center" placeholder="Enter amount" required="" autofocus="">
+                    </div>
+                    <p class="text-mute text-center">You will be redirected to payment gatway to procceed further. Enter amount in USD.</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default btn-lg btn-rounded shadow btn-block" class="close" data-dismiss="modal">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	-->
+
+    <!-- Modal -->
+	<!--
+    <div class="modal fade" id="bookmodal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5>Pay</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body pt-0">
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline12" name="customRadioInline12" class="custom-control-input">
+                        <label class="custom-control-label" for="customRadioInline12">Flight</label>
+                    </div>
+                    <div class="custom-control custom-radio custom-control-inline">
+                        <input type="radio" id="customRadioInline22" name="customRadioInline12" class="custom-control-input" checked>
+                        <label class="custom-control-label" for="customRadioInline22">Train</label>
+                    </div>
+                    <h6 class="subtitle">Select Location</h6>
+                    <div class="form-group mt-4">
+                        <input type="text" class="form-control text-center" placeholder="Select start point" required="" autofocus="">
+                    </div>
+                    <div class="form-group mt-4">
+                        <input type="text" class="form-control text-center" placeholder="Select end point" required="">
+                    </div>
+                    <h6 class="subtitle">Select Date</h6>
+                    <div class="form-group mt-4">
+                        <input type="date" class="form-control text-center" placeholder="Select end point" required="">
+                    </div>
+                    <h6 class="subtitle">number of passangers</h6>
+                    <div class="form-group mt-4">
+                        <select class="form-control  text-center">
+                            <option>1</option>
+                            <option selected>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default btn-lg btn-rounded shadow btn-block" class="close" data-dismiss="modal">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	-->
+
+    <div class="footer bg-template" id="index_footer">
+       	<div class="row mx-0">
+            <div class="col text-center">
+                <label style="font-size: 13px;color:white;">Copyright @2020, <a href="https://www.iii.org.tw/" style="color: white;" target="_blank">財團法人資訊工業策進會</a></label>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+{% block js %}
+    <script src="{% static 'app_web/vendor/swiper/js/swiper.min.js' %}"></script>
+    <script>
+        function frm_submit() {
+            var frm = $('#frm');
+            if (frm[0].checkValidity()) {
+                frm.submit();
+            }else{
+
+                frm[0].reportValidity();
+            }
+        }
+        function qrCamera() {
+            try {
+                if (webkit != undefined) {
+                    webkit.messageHandlers.scanQrCode.postMessage({});
+                }
+            } catch (err) {
+
+            }
+            try {
+                if (window.scanQrCode != undefined) {
+                    window.scanQrCode.postMessage();
+                }
+            } catch (err) {
+
+            }
+            try {
+                if(window.ReactNativeWebView){
+                    window.ReactNativeWebView.postMessage({})
+                }
+            } catch (err) {
+
+            }
+        }
+        {#window.onload = function(){#}
+        {##}
+        {#    getPicUrl();#}
+        {##}
+        {# };#}
+        {#function getPicUrl(){#}
+        {#    var _url = "";#}
+        {#    var orientation;#}
+            {#var p = document.getElementById('user_img');#}
+            {#var p = $('#user_img');#}
+            {#p.setAttribute("src","https://data.photo-ac.com/data/thumbnails/11/111880a78d49a84282255fa5dc9d0714_w.jpeg");#}
+            {#alert( $('#user_img')[0].src );#}
+        {#    EXIF.getData($('#user_img'), function(){#}
+              {#EXIF.getAllTags(this);#}
+        {#      orientation = EXIF.getTag(this, 'Orientation');#}
+        {#    });#}
+        {#    var rotateAngle = 0;#}
+        {#    if(orientation == 6 || orientation == 8|| orientation == 3){#}
+        {#        switch(orientation){#}
+        {#            case 3:#}
+        {#                rotateAngle = 180;#}
+        {#                break;#}
+        {#            case 6:#}
+        {#                rotateAngle = 90;#}
+        {#                break;#}
+        {#            case 8:#}
+        {#                rotateAngle = -90;#}
+        {#                break;#}
+        {#        }#}
+        {#    }#}
+        {# }#}
+
+        {#var ws_url;#}
+        {#if (window.location.port == 8003){#}
+        {#    ws_url = 'ws://' + window.location.hostname + ':' + window.location.port + '/qr/trans/USER' + '/';#}
+        {# }else{#}
+        {#    ws_url = 'ws://' + window.location.host + '/qr/trans/USER' + '/';#}
+        {#  }#}
+        {#var chatSocket = new WebSocket(ws_url);#}
+        {##}
+        {#chatSocket.onmessage = function(e) {#}
+        {#    var data = JSON.parse(e.data);#}
+        {#    var message = data['message'];#}
+        {#    var message_list = message.split(':');#}
+        {#    if (message_list[0] == '{{ request.app_user.pub_id }}'){#}
+        {#        $("#msg").text(message_list[1]);#}
+        {#        $("#message_modal").modal();#}
+        {#    }#}
+        {#    document.querySelector('#chat-log').value += (message + '\n');#}
+        {#    console.log('message:'+message)#}
+        {# };#}
+        {##}
+        {#chatSocket.onclose = function(e) {#}
+        {#    console.error('Chat socket closed unexpectedly');#}
+        {#    console.log('close:')#}
+        {# };#}
+        {##}
+        {#if ($('#send_msg').val() != ''){#}
+        {#    chatSocket.addEventListener('open', function () {#}
+        {#        chatSocket.send(JSON.stringify({#}
+        {#            'message': $('#send_user').val() + ':'+ $('#send_msg').val()#}
+        {#        }));#}
+        {#    });#}
+        {# }#}
+
+        $(document).ready(function() {
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Home Page" %}' + ' · ' + '{% trans "My PassCode" %}';
+            document.getElementById('backpage').style.display = "none";
+            document.getElementById('sidebar').style.display = "";
+            document.getElementById('hamburger').style.display = "";
+            document.getElementById('wrapper_base').setAttribute('class', 'wrapper homepage');
+            if ($('#iii_login').val() != '' ){
+                document.getElementById('index_footer').style.display = "none";
+                document.getElementById('banner_bar').style.display = "none";
+            }else{
+                document.getElementById('index_footer').style.display = "";
+                document.getElementById('banner_bar').style.display = "";
+            }
+        });
+    </script>
+{% endblock %}

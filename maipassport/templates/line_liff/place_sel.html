@@ -1,0 +1,66 @@
+{% extends 'line_liff/base.html' %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+    <div class="container">
+        <div style="height: 100px;"></div>
+        <form method="post" action="{% url 'liff_place_entry' %}">
+            {% csrf_token %}
+            <input type="hidden" value="{{ location }}" name="location">
+            <input type="hidden" name="place_id" value="{{ place.pub_id }}">
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <div class="form-group float-label active" >
+                        <input type="text" class="form-control text-template" id="id_username" style="font-size: 18px;" value="{% if place.company %}{{ place.company.name }} / {{ place.name }}{% else %}{{ place.name }}{% endif %}" readonly>
+                        <label class="form-control-label " style="font-size: 18px;">{% trans 'Place Scan' %}</label>
+                    </div>
+                </div>
+            </div>
+{#            <div class="row bottom40">#}
+{#                <div class="col-md-12 col-sm-12 col-xs-12">#}
+{#                    <div class="form-group float-label active" >#}
+{#                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_name">#}
+{#                        <label class="form-control-label " style="font-size: 18px;">活動名稱</label>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="row bottom40">#}
+{#                <div class="col-md-12 col-sm-12 col-xs-12">#}
+{#                    <div class="form-group float-label active" >#}
+{#                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_organizer">#}
+{#                        <label class="form-control-label " style="font-size: 18px;">主辦單位</label>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#            <div class="row bottom40">#}
+{#                <div class="col-md-12 col-sm-12 col-xs-12">#}
+{#                    <div class="form-group float-label active" >#}
+{#                        <input type="text" class="form-control text-template" style="font-size: 18px;" name="act_org_contact">#}
+{#                        <label class="form-control-label " style="font-size: 18px;">主辦單位連絡人/連絡電話</label>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+{#                    <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>返回首頁</span></a>#}
+                    <button type="submit" class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" id="btn_send"><span>{% trans 'Submit' %}</span></button>
+                </div>
+            </div>
+            <div style="height: 20px;"></div>
+            <div class="row bottom40">
+                <div class="col-md-12 col-sm-12 col-xs-12">
+                    <a href="{% url 'liff_scan' %}"  class="btn btn-lg btn-default text-white btn-block btn-rounded shadow" style="background-color: #848181;"><span>{% trans 'Back' %}</span></a>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script>
+        $(document).ready(function() {
+            document.getElementsByTagName("title")[0].innerText = '{% trans "Record Place" %}' + ' · ' + '{% trans "My PassCode" %}';
+        });
+    </script>
+{% endblock %}

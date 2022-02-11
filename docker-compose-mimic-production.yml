@@ -1,0 +1,171 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./config/nginx/mimic_production:/etc/nginx/conf.d
+      - django-static:/staticfiles
+    depends_on:
+      - web
+    tty: true
+
+  web:
+    build: .
+    image: maipassport_web
+    volumes:
+      - .:/maipassport
+      - django-log:/maipassport/log
+      - django-static:/maipassport/staticfiles
+    links:
+      - db
+      - redis
+#      - filebeat
+#      - elasticsearch
+    depends_on:
+      - db
+      - redis
+#      - filebeat
+#      - elasticsearch
+    tty: true
+
+  db:
+    image: postgres:10
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata-maipassport-default:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: maipassport
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: maipassportdefault123
+
+  redis:
+    image: redis:4
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    environment:
+      - C_FORCE_ROOT=True
+    tty: true
+
+#  filebeat:
+#    volumes:
+#      - django-log:/usr/share/filebeat/logs/django-log/
+#      - fb-data:/usr/share/filebeat/data
+#      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+#    image: docker.elastic.co/beats/filebeat:6.5.4
+#    depends_on:
+#      - elasticsearch
+#      - elasticsearch2
+#
+#  kibana:
+#    image: docker.elastic.co/kibana/kibana:6.5.4
+#    ports:
+#      - "5601:5601"
+#    depends_on:
+#      - elasticsearch
+#      - elasticsearch2
+#
+#  elasticsearch:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+#    container_name: elasticsearch
+#    environment:
+#      - http.host=0.0.0.0
+#      - transport.host=0.0.0.0
+#      - cluster.name=docker-cluster
+#      - bootstrap.memory_lock=true
+#      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+#    ulimits:
+#      nofile:
+#        soft: 65536
+#        hard: 65536
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    volumes:
+#      - es-data:/usr/share/elasticsearch/data
+#    ports:
+#      - "9200:9200"
+#      - "9300:9300"
+#
+#  elasticsearch2:
+#    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+#    container_name: elasticsearch2
+#    environment:
+#      - http.host=0.0.0.0
+#      - transport.host=0.0.0.0
+#      - cluster.name=docker-cluster
+#      - bootstrap.memory_lock=true
+#      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+#      - "discovery.zen.ping.unicast.hosts=elasticsearch"
+#    ulimits:
+#      nofile:
+#        soft: 65536
+#        hard: 65536
+#      memlock:
+#        soft: -1
+#        hard: -1
+#    volumes:
+#      - es-data2:/usr/share/elasticsearch/data
+#    depends_on:
+#      - elasticsearch
+
+  celery:
+    image: maipassport_web
+    command: celery -A maipassport worker -l info --loglevel=debug --concurrency=4 --broker=redis://redis:6379/4
+    links:
+      - redis
+    depends_on:
+      - web
+      - redis
+    tty: true
+
+  celery-beat:
+    image: maipassport_web
+    command: celery -A maipassport beat -l info --loglevel=debug --broker=redis://redis:6379/4
+    links:
+      - redis
+    depends_on:
+      - web
+      - redis
+    tty: true
+
+  celery-flower:
+    image: maipassport_web
+    # TODO: refactor sleep 20 by other checking script
+    command: bash -c "sleep 40 && celery -A maipassport flower --broker=redis://redis:6379/4"
+    ports:
+      - "5555:5555"
+    depends_on:
+      - celery
+      - celery-beat
+    tty: true
+
+#  daphne:
+#    build: .
+#    image: maipassport_web
+##    working_dir: /opt/myproject
+#    command: bash -c "daphne -b 0.0.0.0 -p 8000 config.asgi:application"
+#    ports:
+#      - "8000:8000"
+#    environment:
+#      - REDIS_HOST=redis
+#    depends_on:
+#      - redis
+#    links:
+#      - redis
+#    tty: true
+
+volumes:
+  pgdata-maipassport-default:
+  redis-data:
+  django-log:
+  django-static:
+#  fb-data:
+#  es-data:
+#  es-data2:

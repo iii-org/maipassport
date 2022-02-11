@@ -1,0 +1,212 @@
+{% extends 'app_web_n/base.html' %}
+{% load i18n %}
+{% load static %}
+{% block stylesheet %}
+    <style>
+        .header + div {
+            padding-top: 1px;
+        }
+
+    </style>
+{% endblock %}
+{% block content %}
+    <!-- header -->
+    <div class="header">
+{#        <div style="height: 23px;"></div>#}
+        <div class="row no-gutters">
+            <div class="col-auto">
+                <a href="{% url 'app_index' request.app_user.pub_id request.app_user.api_token %}" class="btn  btn-link text-dark"><i class="material-icons">chevron_left</i></a>
+            </div>
+            <div class="col text-center"></div>
+            <div class="col-auto">
+            </div>
+        </div>
+    </div>
+    <!-- header ends -->
+{#    <div class="row no-gutters login-row">#}
+    <div class="row no-gutters" style="min-height: 670px;">
+        <div class="col align-self-center px-3 text-center">
+            <img src="{% static 'app_web/img/information-graphics-otp.png' %}" alt="logo" class="mw-100" >
+            <form class="form-signin mt-5" id="frm" action="{% url 'edit_password_otp' request.app_user.pub_id request.app_user.api_token %}" method="post">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" id="otp" name="otp" class="form-control form-control-lg text-center" onkeyup="replace_amount(this)" maxlength="6" placeholder="{% trans 'Verify code' %}" required>
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="button" id="btn_otp">{% trans 'Send verify code' %}</button>
+                    </div>
+                </div>
+
+                <input type="hidden" name="otp_id" id="otp_id">
+                <input type="hidden" id="phone" value="{{ phone }}">
+
+                <p class="mt-4 d-block text-secondary">
+                    {% trans "Press send verify code button" %}
+                </p>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- login buttons -->
+    <div class="row mx-0 bottom-button-container">
+        <div class="col">
+            <a onclick="frm_submit()" class="btn btn-default btn-lg btn-rounded shadow btn-block" id="btn_next">{% trans 'Submit' %}</a>
+        </div>
+    </div>
+    <!-- login buttons -->
+{% endblock %}
+{% block js %}
+<script>
+    var interval = null;
+    var cd_sec_val = 60;
+    var success = 0;
+
+    function count_down(){
+
+        {#var cd_sec = $("#cd_sec").text();#}
+        {#var cd_sec_val = parseInt(cd_sec);#}
+        cd_sec_val = cd_sec_val - 1;
+
+        //alert(cd_sec_val);
+
+        if (cd_sec_val <= 0){
+            clearInterval(interval);
+            $("#btn_otp").removeAttr('disabled');
+            $("#btn_otp").text('{% trans 'Send verify code' %}');
+            return
+        }
+        $("#btn_otp").text(cd_sec_val + '{% trans " seconds to send" %}');
+        {#$("#cd_sec").text(cd_sec_val);#}
+    }
+    function send_otp(){
+        var sJson = JSON.stringify
+        ({
+            uts: new Date().getTime(),
+            phone: '{{ request.app_user.phone }}',
+            device_id: '{{ request.app_user.phone }}',
+            otp_text_type: 'APP',
+            otp_type: 'EDIT'
+        });
+        {#alert('sendding');#}
+        if (window.location.port == '8003'){
+            var otp_url = 'http://' + window.location.hostname +':' + window.location.port + '/web_otp_send/';
+        }else{
+            var otp_url = window.location.protocol + '//' + window.location.hostname + '/web_otp_send/';
+        }
+        $.ajax({
+            type: 'POST',
+            url: otp_url,
+            {#data: "uts="+ new Date().getTime()+"&purchase_amount="+ s_amount, // serializes the form's elements.#}
+            data: sJson,
+            dataType: 'json',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+                {#'Accept': 'application/vnd.ani.v1.wallet+json',#}
+                'X-MAI-TOKEN': 'DeviceUser 5c7e9f90fa2e23502cc121afed142a78d91eb81c373f9139df2d1adff4412b1d852bef3257d4192554065ff8df2331eb9ffde930915bdaaf4eb13f17aa2eeb1f',
+                'X-Client-Version': '1.0',
+                'X-Client-Id': '0M7jDJ07t-TQTn-XqV5S',
+            },
+            success: function(response) {
+                {#alert(response);#}
+                $.each(response, function(otp_index, otp_value) {
+                    $("#otp_id").val(otp_value);
+                });
+                {#alert('已送出otp');#}
+                $("#msg").text('{% trans "Verify code already send" %}');
+                $("#message_modal").modal();
+                {#var result_data = JSON.parse(response.data);#}
+                {#alert(result_data.otp_id);#}
+                $("#btn_otp").attr('disabled', true);
+                cd_sec_val = 60;
+                interval = setInterval(function(){ count_down(); }, 1000);
+            },
+            error: function(xhr, status, error) {
+
+                {#alert(error);#}
+                var error_result = JSON.parse(xhr.responseText);
+                {#alert(xhr.status);#}
+                {#alert(error_result.error.message);#}
+                if (error_result){
+                    var error_code = "";
+                    if (error_result.error){
+                        error_code = error_result.error.code;
+                    }
+                    else if (error_result.errors){
+                        error_code = error_result.errors.phone[0].code;
+                    }
+                    if(error_code == 'throttled'){
+                        var otp_resend_time = error_result.error.message.replace('Request was throttled. Expected available in ', '');
+                        otp_resend_time = otp_resend_time.replace(' seconds.', '');
+
+                        cd_sec_val = parseInt(otp_resend_time);
+                        interval = setInterval(function(){ count_down(); }, 1000);
+
+                        {#alert("{% trans 'Waiting ' %}" + otp_resend_time + "{% trans ' seconds to send' %}");#}
+                        $("#msg").text("{% trans 'Waiting ' %}" + otp_resend_time + "{% trans ' seconds to send' %}");
+                        $("#message_modal").modal();
+                    {# }else if (error_code == 'otp_send_too_close'){#}
+                        {#alert(error_result.error.message);#}
+                    {#    $("#msg").text(error_result.error.message);#}
+                    {#    $("#message_modal").modal();#}
+                    }else if (error_code == 'invalid'){
+                        $("#msg").text(error_result.errors.phone[0].message);
+                        $("#message_modal").modal();
+                    }else if (error_code != undefined || error_code != ''){
+                        {#alert(error_result.error.message);#}
+                        $("#msg").text(error_result.error.message);
+                        $("#message_modal").modal();
+                    }else{
+                        $("#msg").text("{% trans 'Send verify code error' %}");
+                        $("#message_modal").modal();
+                    }
+                }else{
+                    $("#msg").text("{% trans 'Send verify code error' %}");
+                    $("#message_modal").modal();
+
+                }
+
+            }
+        });
+    }
+    $("#btn_otp").on('click', function (){
+        send_otp();
+    });
+
+
+    $(document).ready(function() {
+        {#document.getElementById('header_tab').style.display = "none";#}
+        document.getElementById('header_bar').style.display = "none";
+        document.getElementById('sidebar').style.display = "none";
+        document.getElementsByTagName("title")[0].innerText = '{% trans "Edit Password" %}' + ' · ' + '{% trans "My PassCode" %}';
+        {#document.getElementById('back_login_a').style.display = "none";#}
+        {#document.getElementById('back_history_a').style.display = "";#}
+
+        var theme_color_layout = $.cookie("theme-color-layout");
+        var theme_color = $.cookie("theme-color");
+        if (theme_color == 'black-theme' && theme_color_layout == 'theme-dark'){
+            document.getElementById('otp').style.color = 'white';
+            document.getElementById('btn_next').style.backgroundColor = '#2c2c2c';
+        }
+    });
+    function frm_submit() {
+        var frm = $('#frm');
+        if (frm[0].checkValidity()) {
+            if ($('#otp_id').val() == ''){
+                $("#msg").text('{% trans "Press send verify code button" %}');
+                $("#message_modal").modal();
+            }else{
+                frm.submit();
+            }
+        }else{
+
+            frm[0].reportValidity();
+        }
+    }
+    function replace_amount(obj) {
+        obj.value = obj.value.replace(/[^\d]/g,'');
+    }
+</script>
+
+{% endblock %}
+

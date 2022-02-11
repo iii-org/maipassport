@@ -1,0 +1,145 @@
+{% extends 'app_web/base.html' %}
+{% load static %}
+{% load qr_tags %}
+{% block content %}
+{#<div class="container">#}
+{#    <div class="row">#}
+{#        <div class="col-md-12 col-sm-12 col-xs-12 top20 bottom20" style="font-size:25px; font-weight:bold;">登入<img src="{% static 'images/LINE.png' %}" class="img-responsive top5" alt="" /> </div>#}
+{#    </div>#}
+{#</div>#}
+    <!-- 內容電腦網頁版 -->
+    <div class="container pc_top">
+        <div class="row bottom40">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+
+                <form method="post" action="{% url 'user_work_status' request.app_user.pub_id request.app_user.api_token %}">
+                {% csrf_token %}
+                    <input type="hidden" value="{{ location }}" name="location">
+                    <div style="padding-top: 30px;">
+                        <div class="text-center" ><h3>健康通行人員防疫管理平台</h3></div>
+                        <div style="height: 20px;"></div>
+                        <div style="background-color:#f4f4f4;font-size: 15px;padding:10px 0 15px;">
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <label>上下班公司：{{ company.name }}</label>
+                                    <input type="hidden" name="company_id" value="{{ company.pub_id }}">
+        {#                            <select class="form-control" name="company">#}
+        {#                                {% for company in scan_company_list %}#}
+        {#                                    <option value="{{ company.pub_id }}">{{ company.name }}</option>#}
+        {#                                {% endfor %}#}
+        {#                            </select>#}
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <label>上下班地點：{{ place.name }}</label>
+                                    <input type="hidden" name="place_id" value="{{ place.pub_id }}">
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <label>現在狀態：{{ user_status }}</label>
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <div class="col-md-5 text-right" ><label>請選擇上下班狀態：</label></div>
+                                    <div class="col-md-7 text-left">
+                                        <select class="form-control" name="status">
+                                        {% for status in status_list %}
+                                            <option value="{{ status.0 }}">{{ status.1 }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <label>是否遠端上班：</label>
+                                    <input type="checkbox" name="remote_work" value="true">
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                            <div style="height: 10px;"></div>
+                            <div class="text-center">
+                                <div class="col-md-3 ">&nbsp;</div>
+                                <div class="col-md-6 ">
+                                    <button class="btn form-control" type="submit" style="color:white; background-color: #4769ff">送出</button>
+                                    <div style="height: 5px;"></div>
+                                    <button onclick="cancel_btn('{{ request.app_user.pub_id }}', '{{ request.app_user.api_token }}')" class="btn form-control" type="button" style="color:white; background-color: lightslategray">取消</button>
+                                </div>
+                                <div class="col-md-3 ">&nbsp;</div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 內容手機app -->
+    <div class="container mobile_top">
+        <div class="row bottom40">
+            <div class="col-md-12 col-sm-12 col-xs-12">
+                <div style="padding-top: 30px;">
+                    <div class="text-center" ><h4>健康通行人員防疫管理平台</h4></div>
+                    <div style="height: 30px;"></div>
+                    {% if qr_type == 'USER' %}
+                        {% if scan_health == 1 %}
+                            <div class="text-center">
+                                <div class="col-md-12"><button class="btn form-control" style="border-radius:11px; height:60px; background-color: #63cf3e;color: white; font-size: 20px;">健康碼更新</button></div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                        {% endif %}
+                        {% if scan_approach == 1 %}
+                            <div class="text-center">
+                                <div class="col-md-12"><button class="btn form-control" style="border-radius:11px; height:60px; background-color: #2e3ac4;color: white; font-size: 20px;">接洽掃描</button></div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                        {% endif %}
+                        {% if scan_visitor == 1 %}
+                            <div class="text-center">
+                                <div class="col-md-12"><button class="btn form-control" style="border-radius:11px; height:60px; background-color: #ff6d43;color: white; font-size: 20px;">訪客登記</button></div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                        {% endif %}
+                    {% elif qr_type == 'PLACE' %}
+                        {% if scan_clock_in == 1 %}
+                            <div class="text-center">
+                                <div class="col-md-12"><button class="btn form-control" style="border-radius:11px; height:60px; background-color: #4936c3;color: white; font-size: 20px;">上下班狀態變更</button></div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                        {% endif %}
+                        {% if scan_place == 1 %}
+                            <div class="text-center">
+                                <div class="col-md-12"><button class="btn form-control" style="border-radius:11px; height:60px; background-color: #4cc338;color: white; font-size: 20px;">地點紀錄</button></div>
+                            </div>
+                            <div style="height: 5px;"></div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block js %}
+    <script>
+        function cancel_btn(pub_id, api_token) {
+            var api_url = "{% url 'app_index' 'field__1' 'field__2' %}".replace('field__1', pub_id);
+            api_url = api_url.replace('field__2', api_token);
+            {#alert(api_url);#}
+            location.href = api_url;
+        }
+    </script>
+{% endblock %}
