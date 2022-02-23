@@ -1,6 +1,0 @@
-locale/zh_Hant/LC_MESSAGES/django.mo
-__pycache__/
-log/
-*.log
-.idea/
-*.iml
